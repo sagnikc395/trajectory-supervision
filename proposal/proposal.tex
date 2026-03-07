@@ -1,0 +1,86 @@
+\documentclass{article}
+
+\usepackage[preprint]{neurips_2025}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{enumitem}
+
+\title{Project Proposal: Process vs Outcome Supervision for Continual Tool-Use Learning in LLMs}
+
+\author{%
+  Vishnu Vardhan Reddy B \\
+  CS 590NN \\
+  UMass Amherst \\
+  \texttt{vbheemreddy@umass.edu} \\
+  \And
+  Sagnik Chatterjee \\
+  CS 590NN \\
+  UMass Amherst \\
+  \texttt{sagnikchatte@umass.edu} \\
+  \And
+  Soumik Bhatta \\
+  CS 590NN \\
+  UMass Amherst \\
+  \texttt{sbhatta@umass.edu} \\
+}
+
+\begin{document}
+
+\maketitle
+
+\vspace{-0.5cm}
+
+\paragraph{Background.}
+Large language models are trained primarily on finished artifacts from the internet: posts, articles, answers, and code. The reasoning process that produced these outputs is almost never recorded. This means models learn from the products of thought, not the process of thought. Process-level supervision has been shown to outperform outcome-only supervision in mathematical reasoning [1], and recent work on agent trajectory fine-tuning demonstrates that interaction traces are a viable training signal for tool-use [2]. Separately, continual learning research shows that sequential fine-tuning of LLMs causes severe catastrophic forgetting [3, 4]. Whether the type of supervision signal affects forgetting behavior remains unexplored.
+
+\paragraph{Problem / Opportunity / Aims.}
+Tool-use interactions provide a naturally occurring proxy for process data: each interaction records a user request, a tool call, the tool output, and a final response. The intermediate steps represent externalized reasoning absent from outcome-only data. We test whether this richer signal produces different learning dynamics than outcome-only supervision, using continual learning as a stress test.
+
+\vspace{-0.1cm}
+\begin{itemize}[nosep, leftmargin=*]
+  \item \textbf{A1:} Compare adaptation speed between outcome-only and trajectory supervision across sequential tool-use domains.
+  \item \textbf{A2:} Measure catastrophic forgetting under both conditions after sequential domain shifts.
+  \item \textbf{A3:} Determine whether continual evaluation reveals differences that single-domain evaluation would miss.
+\end{itemize}
+
+\vspace{0.05cm}
+\paragraph{Methodology.}
+We fine-tune Llama 3.1 8B Instruct [6] with QLoRA [7] (rank 32, 4-bit) on API-Bank [5], partitioned into sequential domain blocks grouped by API family. \textbf{Condition A} trains only on final assistant responses (outcome-only). \textbf{Condition B} trains on full trajectories including tool calls and outputs (process supervision). Both conditions share identical hyperparameters, domain ordering, and training token budgets. We evaluate using backward transfer (BWT), forward transfer (FWT), average forgetting [8], adaptation speed (area under learning curve), and API-call accuracy. Experiments run across multiple seeds with bootstrap confidence intervals.
+
+\paragraph{Expected outcomes, significance, rationale.}
+We expect trajectory supervision to yield faster adaptation and less forgetting, because intermediate steps provide a richer gradient signal that better constrains learned representations. Sequential domain shifts should amplify this difference relative to single-domain evaluation. If confirmed, this supports the hypothesis that outcome-only training data limits how LLMs learn, and that process-level data carries meaningful additional signal. This connects to course themes of lifelong learning and richer training signals for neural networks.
+
+\paragraph{Contingencies.}
+If API-Bank tooling is unstable, we use offline trace imitation. If compute is limited, we prioritize a single-seed A vs B comparison with per-domain analysis. If differences are small, we analyze per-domain results to identify where trajectory supervision helps most.
+
+\paragraph{Timetable.}
+Wk 1--2: data pipeline. Wk 3: Condition A. Wk 4: Condition B. Wk 5--6: multi-seed runs, token equalization, metrics. Wk 7: analysis and figures. Wk 8: report and presentation.
+
+\section*{References}
+\small
+
+[1] Lightman, H., et al.\ (2023). Let's Verify Step by Step. \textit{arXiv:2305.20050}.
+
+[2] Zhang, Y., et al.\ (2024). AgentBank: Towards Generalized LLM Agents via Fine-Tuning on 50000+ Interaction Trajectories. \textit{EMNLP 2024 Findings}.
+
+[3] Wang, X., et al.\ (2023). TRACE: A Comprehensive Benchmark for Continual Learning in Large Language Models. \textit{arXiv:2310.06762}.
+
+[4] Shi, Y., et al.\ (2024). Continual Learning of Large Language Models: A Comprehensive Survey. \textit{ACM Computing Surveys, 2025}.
+
+[5] Li, M., et al.\ (2023). API-Bank: A Benchmark for Tool-Augmented LLMs. \textit{arXiv:2304.08244}.
+
+[6] Dubey, A., et al.\ (2024). The Llama 3 Herd of Models. \textit{arXiv:2407.21783}.
+
+[7] Dettmers, T., et al.\ (2023). QLoRA: Efficient Finetuning of Quantized LLMs. \textit{arXiv:2305.14314}.
+
+[8] Lopez-Paz, D.\ \& Ranzato, M.\ (2017). Gradient Episodic Memory for Continual Learning. \textit{NeurIPS 2017}.
+
+\end{document}
