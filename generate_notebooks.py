@@ -76,7 +76,7 @@ nb1_cells = [
         "2. Extracts API names, excludes ToolSearcher (meta-API)\n"
         "3. Builds 6 balanced domain blocks via greedy bin-packing\n"
         "4. Creates 80/20 train/eval splits per block\n"
-        "5. Formats data for Conditions A, B, and A+ (Llama 3.1 chat template)\n"
+        "5. Formats data for Conditions A, B, and A+ (Mistral instruct format)\n"
         "6. Saves preprocessed data as pickle"
     ),
     code("!pip install -q transformers datasets huggingface_hub numpy tqdm"),
@@ -170,7 +170,7 @@ nb1_cells = [
     code(
         "from transformers import AutoTokenizer\n"
         "\n"
-        'MODEL_NAME = "meta-llama/Llama-3.1-8B-Instruct"\n'
+        'MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.3"\n'
         "tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)\n"
         "if tokenizer.pad_token is None:\n"
         "    tokenizer.pad_token = tokenizer.eos_token\n"
@@ -179,7 +179,7 @@ nb1_cells = [
         'print(f"Vocab size: {len(tokenizer)}")'
     ),
     md(
-        "## 4. Format Functions (Llama 3.1 Chat Template)\n"
+        "## 4. Format Functions (Mistral Instruct Format)\n"
         "\n"
         "Both conditions use the **same system prompt** and **same output**.\n"
         "Only difference: whether input context includes prior API interactions.\n"
@@ -218,14 +218,8 @@ nb1_cells = [
         "    else:\n"
         "        context = inp\n"
         "\n"
-        "    prompt = (\n"
-        '        "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n"\n'
-        "        + SYSTEM_PROMPT\n"
-        '        + "<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n"\n'
-        "        + context\n"
-        '        + "<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n"\n'
-        "    )\n"
-        '    response = out + "<|eot_id|>"\n'
+        '    prompt = f"[INST] {SYSTEM_PROMPT}\\n\\n{context} [/INST]"\n'
+        '    response = f" {out}</s>"\n'
         "    full_text = prompt + response\n"
         "    prompt_len = len(tokenizer.encode(prompt, add_special_tokens=False))\n"
         "    return full_text, prompt_len\n"
@@ -633,13 +627,7 @@ nb2_cells = [
         "        expected_params = dict(re.findall(r\"(\\w+)='([^']*)'\", expected))\n"
         "\n"
         "        inp = entry['input']\n"
-        "        prompt = (\n"
-        '            "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\\n\\n"\n'
-        "            + system_prompt\n"
-        '            + "<|eot_id|><|start_header_id|>user<|end_header_id|>\\n\\n"\n'
-        "            + inp\n"
-        '            + "<|eot_id|><|start_header_id|>assistant<|end_header_id|>\\n\\n"\n'
-        "        )\n"
+        '        prompt = f"[INST] {system_prompt}\\n\\n{inp} [/INST]"\n'
         "\n"
         "        enc = tokenizer(\n"
         "            prompt, truncation=True,\n"
@@ -915,7 +903,7 @@ nb3_cells = [
         "fig, axes = plt.subplots(2, 3, figsize=(20, 12))\n"
         "fig.suptitle(\n"
         '    "Post-Only (A) vs Trajectory (B) vs Token-Matched (A+)\\n"\n'
-        '    "Continual Tool-Use Learning — Llama 3.1 8B, QLoRA, API-Bank",\n'
+        '    "Continual Tool-Use Learning — Mistral-7B-Instruct-v0.3, QLoRA, API-Bank",\n'
         "    fontsize=13, fontweight='bold',\n"
         ")\n"
         "\n"
