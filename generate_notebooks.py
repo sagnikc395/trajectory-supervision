@@ -77,9 +77,7 @@ nb1_cells = [
         "3. Builds 6 balanced domain blocks via greedy bin-packing\n"
         "4. Creates 80/20 train/eval splits per block\n"
         "5. Formats data for Conditions A, B, and A+ (Llama 3.1 chat template)\n"
-        "6. Saves preprocessed data as pickle\n"
-        "\n"
-        "**Run once.** Share `preprocessed_data/` with teammates."
+        "6. Saves preprocessed data as pickle"
     ),
     code("!pip install -q transformers datasets huggingface_hub numpy tqdm"),
     code(
@@ -388,8 +386,7 @@ nb1_cells = [
         "pkl_size = os.path.getsize(pkl_path) / 1e6\n"
         'print(f"\\nSaved to {OUTPUT_DIR}/")\n'
         'print(f"  preprocessed.pkl  ({pkl_size:.1f} MB)")\n'
-        'print(f"  summary.json")\n'
-        'print(f"\\nShare this folder with teammates.")'
+        'print(f"  summary.json")'
     ),
 ]
 
@@ -405,21 +402,11 @@ nb2_cells = [
         "**Project:** Post-Only (A) vs Trajectory (B) Supervision "
         "for Continual Tool-Use Learning\n"
         "\n"
-        "This notebook trains on 6 sequential domain blocks and evaluates after each.\n"
-        "\n"
-        "**Set `CONDITION` and `SEED` below, then run all cells.**\n"
-        "\n"
-        "| Person | CONDITION | What |\n"
-        "|--------|-----------|------|\n"
-        "| Vishnu | `B` | Trajectory (full trace) |\n"
-        "| Sagnik | `A` | Post-Only (stripped context) |\n"
-        "| Soumik | `A+` | Token-matched (more epochs) |\n"
-        "\n"
-        "Upload `preprocessed_data/` folder before running."
+        "This notebook trains on 6 sequential domain blocks and evaluates after each."
     ),
     code(
         "# ============================================================\n"
-        "# CONFIGURATION — CHANGE THESE\n"
+        "# CONFIGURATION\n"
         "# ============================================================\n"
         'CONDITION = "B"   # "A", "B", or "A+"\n'
         "SEED = 42"
@@ -795,8 +782,7 @@ nb2_cells = [
         "with open(output_file, 'w') as f:\n"
         "    json.dump(results, f, indent=2)\n"
         "\n"
-        'print(f"\\nResults saved: {output_file}")\n'
-        'print("Download and share for 03_analysis.ipynb")'
+        'print(f"\\nResults saved: {output_file}")'
     ),
 ]
 
@@ -810,10 +796,7 @@ nb3_cells = [
         "# 03 — Analysis & Visualization\n"
         "\n"
         "**Project:** Post-Only (A) vs Trajectory (B) Supervision "
-        "for Continual Tool-Use Learning\n"
-        "\n"
-        "Upload `results_A_seed42.json`, `results_B_seed42.json`, "
-        "`results_A+_seed42.json` before running."
+        "for Continual Tool-Use Learning"
     ),
     code(
         "import json\n"
