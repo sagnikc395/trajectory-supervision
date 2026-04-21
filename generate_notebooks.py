@@ -435,6 +435,17 @@ nb2_cells = [
     ),
     md("## 1. Load Preprocessed Data"),
     code(
+        "if not os.path.exists('preprocessed_data/preprocessed.pkl'):\n"
+        "    if os.path.exists('preprocessed_data.zip'):\n"
+        "        import zipfile\n"
+        "        with zipfile.ZipFile('preprocessed_data.zip', 'r') as zf:\n"
+        "            zf.extractall('.')\n"
+        "        print('Extracted preprocessed_data.zip')\n"
+        "    else:\n"
+        "        raise FileNotFoundError(\n"
+        "            \"Missing preprocessed_data/preprocessed.pkl. Upload preprocessed_data.zip or the extracted preprocessed_data directory to Colab session storage.\"\n"
+        "        )\n"
+        "\n"
         "with open('preprocessed_data/preprocessed.pkl', 'rb') as f:\n"
         "    data = pickle.load(f)\n"
         "\n"
