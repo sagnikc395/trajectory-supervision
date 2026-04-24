@@ -1,32 +1,7 @@
 {
   "condition": "B",
   "seed": 42,
-  "zero_shot": {
-    "loss": [
-      0.5375680138402786,
-      0.9413035435504035,
-      1.1517213519086753,
-      1.0874223873419109
-    ],
-    "ppl": [
-      1.711838627844589,
-      2.5633206415348826,
-      3.1636339527142168,
-      2.966617418248829
-    ],
-    "name_acc": [
-      0.6875,
-      0.84375,
-      0.625,
-      0.53125
-    ],
-    "full_acc": [
-      0.3125,
-      0.375,
-      0.15625,
-      0.15625
-    ]
-  },
+  "blocks_trained": 4,
   "eval_loss": [
     [
       0.07504084191663662,
@@ -142,34 +117,5 @@
     461.2175347805023,
     449.3014872074127,
     456.0590991973877
-  ],
-  "train_tokens_by_block": [
-    586733,
-    587908,
-    569510,
-    580163
-  ],
-  "total_train_tokens": 2324314,
-  "epochs_per_block": [
-    3,
-    3,
-    3,
-    3
-  ],
-  "total_time": 2925.1074845790863,
-  "config": {
-    "model": "meta-llama/Llama-3.1-8B-Instruct",
-    "num_blocks": 4,
-    "base_epochs": 3,
-    "batch_size": 4,
-    "gradient_accumulation_steps": 4,
-    "effective_batch_size": 16,
-    "lr": 0.0002,
-    "eval_max_samples": 32,
-    "max_seq_len": 1024,
-    "lora_r": 32,
-    "lora_alpha": 64,
-    "attn": "sdpa",
-    "precision": "bf16"
-  }
+  ]
 }
