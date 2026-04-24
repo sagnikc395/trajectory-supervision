@@ -3,6 +3,7 @@
 *.log
 *.out
 __pycache__/
+.claude/
 *.zip
 !artifacts/preprocessed_data.zip
 
