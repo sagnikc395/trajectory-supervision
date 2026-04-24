@@ -3,6 +3,9 @@
 *.log
 *.out
 __pycache__/
-.claude/
 *.zip
 !artifacts/preprocessed_data.zip
+
+# Large binary artifacts kept on disk, referenced by sha256 in runs/ ledgers.
+artifacts/partial/*.tar.gz
+artifacts/partial/*.tgz
