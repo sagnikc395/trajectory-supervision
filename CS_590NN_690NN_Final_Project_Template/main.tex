@@ -49,7 +49,7 @@ Tool-use data gives a narrower but concrete proxy. A tool-use example can includ
 
 We use continual learning as a stress test, not as a new algorithmic contribution. If two supervision formats perform similarly on one domain, differences may become clearer when the model learns a sequence of new domains and must retain older ones. We therefore split API-Bank \citep{li2023apibank} into four sequential blocks and evaluate after each training block on all blocks.
 
-We compare a stripped-context next-API-call baseline against a trajectory-context baseline under the same model, seed, stream ordering, QLoRA setup, and evaluation code. We do not claim to have solved catastrophic forgetting or to have shown that API traces work like human thought. What we measure is whether retaining tool-use trajectory information changes continual tool-call learning.
+We compare a stripped-context next-API-call baseline against a trajectory-context baseline under the same model, seed, stream ordering, QLoRA setup, and evaluation code. We focus on whether retaining API trajectory context changes continual next-call learning.
 
 Our main findings are:
 \begin{itemize}[leftmargin=*]
@@ -61,13 +61,13 @@ Our main findings are:
 \section{Related work}
 
 \paragraph{Process supervision.}
-Lightman et al.\ compare process and outcome supervision for mathematical reasoning and show that step-level supervision can be more effective than final-answer supervision \citep{lightman2023verify}. We borrow that distinction, but our data is different. API trajectories are not annotated reasoning steps; they are records of tool calls and tool observations. This makes the supervision weaker as a cognitive model but easier to collect in real systems.
+Lightman et al.\ compare process and outcome supervision for mathematical reasoning and show that step-level supervision can be more effective than final-answer supervision \citep{lightman2023verify}. We use that distinction, but our data is different. API trajectories are not annotated reasoning steps; they are records of tool calls and tool observations. They are less direct evidence about human reasoning, but easier to collect in real systems.
 
 \paragraph{Tool-use learning.}
 Toolformer showed that language models can learn to call external tools from self-supervised tool-use traces \citep{schick2023toolformer}. API-Bank provides a compact benchmark for tool-augmented language models with API calls, responses, and dialogue context \citep{li2023apibank}. ToolLLM and ToolBench scale this idea to many real-world APIs and solution paths \citep{qin2023toolllm}. We use API-Bank because it is small enough for repeated QLoRA experiments in a course project and still has structured tool-call supervision.
 
 \paragraph{Continual learning in LLMs.}
-Sequential fine-tuning can damage previously learned behavior. TRACE formalizes continual learning evaluation for LLMs and reports severe forgetting under sequential training \citep{wang2023trace}. We borrow the evaluation lens: after training on block $D_i$, evaluate on all blocks $D_j$. Our aim is not to introduce a new forgetting method such as replay or regularization. Instead, we ask whether the supervision format itself changes adaptation and retention.
+Sequential fine-tuning can damage previously learned behavior. TRACE formalizes continual learning evaluation for LLMs and reports severe forgetting under sequential training \citep{wang2023trace}. We use the same evaluation setup: after training on block $D_i$, evaluate on all blocks $D_j$. Here, the question is whether the supervision format itself changes adaptation and retention, without adding replay or regularization.
 
 \paragraph{Efficient adaptation.}
 LoRA trains low-rank adapter weights instead of updating all parameters \citep{hu2022lora}. QLoRA adds 4-bit quantization to make fine-tuning larger models feasible on limited hardware \citep{dettmers2023qlora}. We use QLoRA with Llama 3.1 8B Instruct \citep{dubey2024llama} so that both conditions can be trained and checkpointed in Colab.
@@ -108,7 +108,7 @@ For the sampled continual-learning analysis, we also compute average accuracy (A
 
 \subsection{Sampled continual-learning evaluation}
 
-Table~\ref{tab:sampled} summarizes the 32-example-per-block evaluation produced during training. B has higher final average accuracy and higher forward transfer, but it also has more negative BWT and larger average forgetting under this sampled metric. This means B is not simply better on every continual-learning statistic; it learns the next-call format more effectively, but it can still lose performance on earlier blocks.
+Table~\ref{tab:sampled} summarizes the 32-example-per-block evaluation produced during training. B has higher final average accuracy and higher forward transfer, but it also has more negative BWT and larger average forgetting under this sampled metric. So B improves final AA and FWT, but the sampled run still shows forgetting on earlier blocks.
 
 \begin{table}[t]
 \centering
@@ -204,13 +204,13 @@ B makes fewer wrong tool choices, but it makes more parse failures. Longer traje
 
 \section{Conclusion and future work}
 
-We tested whether trajectory context changes continual tool-use learning in a controlled Llama 3.1 8B QLoRA pilot. The full held-out evaluation shows a clear advantage for trajectory context on final exact API-call generation: 56.9\% versus 39.2\%. This remains a pilot because the trajectory condition uses more tokens and the experiment uses one seed.
+We tested whether trajectory context changes continual tool-use learning in a controlled Llama 3.1 8B QLoRA pilot. The full held-out evaluation favored trajectory context on final exact API-call generation: 56.9\% versus 39.2\%. The comparison is still limited by the larger token count for B and by the single seed.
 
-The most urgent follow-up is running multiple seeds and reporting confidence intervals, since a single-seed result cannot support strong claims. A token-matched variant of Condition B would also help separate the effect of trajectory content from the effect of seeing more tokens. Beyond that, longer task streams and a semantic parameter scorer that distinguishes formatting errors from genuinely wrong tool calls would strengthen the evaluation. Replay or retrieval methods are worth exploring, though they would be new continual-learning interventions rather than part of the A/B supervision question.
+The next step is to run multiple seeds and report confidence intervals. A token-matched variant of Condition B would also help separate trajectory content from simply seeing more tokens. Longer task streams and a semantic parameter scorer would make the evaluation stronger. Replay or retrieval methods would be interesting, but they would be new continual-learning interventions rather than part of the A/B supervision question.
 
 \section{Contributions}
 
-Table~\ref{tab:contrib} lists individual responsibilities. Everyone shared project framing, result interpretation, and report writing.
+Table~\ref{tab:contrib} lists individual responsibilities. All three of us contributed equally. We discussed the setup, interpreted the results, and edited the report.
 
 \begin{table}[h]
 \centering
@@ -222,9 +222,9 @@ Table~\ref{tab:contrib} lists individual responsibilities. Everyone shared proje
 \toprule
 Student & Contributions \\
 \midrule
-Vishnu Vardhan Reddy B & Data preprocessing pipeline, evaluation and scoring code, artifact validation, full generation evaluation runs. \\
+Vishnu Vardhan Reddy B & Data preprocessing pipeline, evaluation and scoring code, checked generated outputs, full generation evaluation runs. \\
 Sagnik Chatterjee & Training notebook implementation, continual-learning metric computation, Colab experiment execution. \\
-Soumik Bhatta & Error analysis, figure generation, presentation preparation, experiment verification. \\
+Soumik Bhatta & Error analysis, figure generation, presentation preparation, checked error categories and experiment outputs. \\
 \bottomrule
 \end{tabular}
 \end{table}
