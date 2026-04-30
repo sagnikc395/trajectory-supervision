@@ -49,7 +49,7 @@ Tool-use data gives a narrower but concrete proxy. A tool-use example can includ
 
 We use continual learning as a stress test, not as a new algorithmic contribution. If two supervision formats perform similarly on one domain, differences may become clearer when the model learns a sequence of new domains and must retain older ones. We therefore split API-Bank \citep{li2023apibank} into four sequential blocks and evaluate after each training block on all blocks.
 
-We compare a stripped-context next-API-call baseline against a trajectory-context baseline under the same model, seed, stream ordering, QLoRA setup, and evaluation code. We do not claim to have solved catastrophic forgetting or to have shown that API traces work like human thought. The contribution is narrower: a first controlled measurement of whether retaining tool-use trajectory information changes continual tool-call learning.
+We compare a stripped-context next-API-call baseline against a trajectory-context baseline under the same model, seed, stream ordering, QLoRA setup, and evaluation code. We do not claim to have solved catastrophic forgetting or to have shown that API traces work like human thought. What we measure is whether retaining tool-use trajectory information changes continual tool-call learning.
 
 Our main findings are:
 \begin{itemize}[leftmargin=*]
@@ -61,10 +61,10 @@ Our main findings are:
 \section{Related work}
 
 \paragraph{Process supervision.}
-Lightman et al.\ compare process and outcome supervision for mathematical reasoning and show that step-level supervision can be more effective than final-answer supervision \citep{lightman2023verify}. Our work is inspired by that distinction, but our data is different. API trajectories are not annotated reasoning steps; they are records of tool calls and tool observations. This makes the supervision weaker as a cognitive model but easier to collect in real systems.
+Lightman et al.\ compare process and outcome supervision for mathematical reasoning and show that step-level supervision can be more effective than final-answer supervision \citep{lightman2023verify}. We borrow that distinction, but our data is different. API trajectories are not annotated reasoning steps; they are records of tool calls and tool observations. This makes the supervision weaker as a cognitive model but easier to collect in real systems.
 
 \paragraph{Tool-use learning.}
-Toolformer showed that language models can learn to call external tools from self-supervised tool-use traces \citep{schick2023toolformer}. API-Bank provides a compact benchmark for tool-augmented language models with API calls, responses, and dialogue context \citep{li2023apibank}. ToolLLM and ToolBench scale this idea to many real-world APIs and solution paths \citep{qin2023toolllm}. We use API-Bank because it is small enough for repeated QLoRA experiments in a course project while still containing structured tool-call supervision.
+Toolformer showed that language models can learn to call external tools from self-supervised tool-use traces \citep{schick2023toolformer}. API-Bank provides a compact benchmark for tool-augmented language models with API calls, responses, and dialogue context \citep{li2023apibank}. ToolLLM and ToolBench scale this idea to many real-world APIs and solution paths \citep{qin2023toolllm}. We use API-Bank because it is small enough for repeated QLoRA experiments in a course project and still has structured tool-call supervision.
 
 \paragraph{Continual learning in LLMs.}
 Sequential fine-tuning can damage previously learned behavior. TRACE formalizes continual learning evaluation for LLMs and reports severe forgetting under sequential training \citep{wang2023trace}. We borrow the evaluation lens: after training on block $D_i$, evaluate on all blocks $D_j$. Our aim is not to introduce a new forgetting method such as replay or regularization. Instead, we ask whether the supervision format itself changes adaptation and retention.
@@ -90,7 +90,7 @@ Condition B is the trajectory-context condition. It keeps the previous API reque
 
 All runs use \texttt{meta-llama/Llama-3.1-8B-Instruct}. We fine-tune with QLoRA using 4-bit NF4 quantization, LoRA rank 32, LoRA alpha 64, bfloat16 computation, maximum sequence length 1024, and an effective batch size of 16. We use AdamW with a learning rate of $2 \times 10^{-4}$. Each block is trained for three epochs. The training runs use seed 42.
 
-The main fairness limitation is token count. Condition A consumes 1,857,169 training tokens; Condition B consumes 2,324,314 training tokens. B therefore sees 25.1\% more tokens because trajectory context is longer. We report this explicitly and treat token-matched training as future work.
+The main fairness limitation is token count. Condition A consumes 1,857,169 training tokens; Condition B consumes 2,324,314 training tokens. B therefore sees 25.1\% more tokens because trajectory context is longer. Token-matched training is left as future work.
 
 \subsection{Evaluation metrics}
 
@@ -175,7 +175,7 @@ B & Name + any param & 67.5 & 76.9 & 61.2 & 72.0 & 69.4 \\
 
 \subsection{Error analysis}
 
-The error categories clarify what trajectory context changed. At the final stage, A produced 102 wrong-API errors, while B produced only 12. This supports the interpretation that trajectory context helps the model choose the correct tool. However, B also produced 101 malformed/no-call errors, compared with 45 for A. The B model often had the right tool structure at the name level but did not always produce an exactly parseable or parameter-complete call.
+The error categories clarify what trajectory context changed. At the final stage, A produced 102 wrong-API errors, while B produced only 12. This suggests trajectory context helps the model pick the correct tool. However, B also produced 101 malformed/no-call errors, compared with 45 for A. The B model often had the right tool structure at the name level but did not always produce an exactly parseable or parameter-complete call.
 
 \begin{table}[t]
 \centering
@@ -196,11 +196,11 @@ Malformed or no call & 45 & 101 \\
 
 \section{Discussion}
 
-In this single-seed API-Bank stream, keeping trajectory context improves final held-out next-API-call generation. The improvement is strongest for tool selection. The action-observation history likely gives the model useful structure for choosing which API to call next.
+In this single-seed API-Bank stream, keeping trajectory context improves final held-out next-API-call generation. The improvement is strongest for tool selection. The action-observation history likely helps the model pick which API to call next.
 
 This result does not prove that process supervision is inherently better. The most obvious confound is token budget: B sees 25\% more tokens, and more data can help even if the extra content is not causally important. We also have only one seed, so we cannot report confidence intervals. API-Bank traces are structured and partly synthetic, which makes them a weaker stand-in for real reasoning data. And our task is next API-call prediction, not full end-to-end task success, which is a narrower evaluation than what a deployment setting would require.
 
-The malformed/no-call result is also important. B makes fewer wrong tool choices, but it makes more parse failures. Longer trajectory prompts may help the model identify the right tool while making exact output formatting harder to get right. Our parser is also strict: a call with the correct API and nearly correct parameters still counts as a failure if the string does not exactly match. A semantic parameter scorer alongside exact-match scoring would help separate these effects.
+B makes fewer wrong tool choices, but it makes more parse failures. Longer trajectory prompts may help the model identify the right tool while making exact output formatting harder to get right. Our parser is also strict: a call with the correct API and nearly correct parameters still counts as a failure if the string does not exactly match. A semantic parameter scorer alongside exact-match scoring would help separate these effects.
 
 \section{Conclusion and future work}
 
@@ -210,11 +210,11 @@ The most urgent follow-up is running multiple seeds and reporting confidence int
 
 \section{Contributions}
 
-All three students contributed to the project. Individual responsibilities are listed in Table~\ref{tab:contrib}; shared work included project framing, result interpretation, and report writing.
+Table~\ref{tab:contrib} lists individual responsibilities. Everyone shared project framing, result interpretation, and report writing.
 
 \begin{table}[h]
 \centering
-\caption{Equal project contribution summary.}
+\caption{Project contributions.}
 \label{tab:contrib}
 \small
 \setlength{\tabcolsep}{4pt}
@@ -222,9 +222,9 @@ All three students contributed to the project. Individual responsibilities are l
 \toprule
 Student & Contributions \\
 \midrule
-Vishnu Vardhan Reddy B & Data preprocessing pipeline, evaluation and scoring code, artifact validation, full generation evaluation runs. Shared: project framing, result interpretation, report writing. \\
-Sagnik Chatterjee & Training notebook implementation, continual-learning metric computation, Colab experiment execution. Shared: project framing, result interpretation, report writing. \\
-Soumik Bhatta & Error analysis, figure generation, presentation preparation, experiment verification. Shared: project framing, result interpretation, report writing. \\
+Vishnu Vardhan Reddy B & Data preprocessing pipeline, evaluation and scoring code, artifact validation, full generation evaluation runs. \\
+Sagnik Chatterjee & Training notebook implementation, continual-learning metric computation, Colab experiment execution. \\
+Soumik Bhatta & Error analysis, figure generation, presentation preparation, experiment verification. \\
 \bottomrule
 \end{tabular}
 \end{table}
