@@ -2,6 +2,12 @@
 
 Use this directory as the repo-backed ledger for agent-run experiments.
 
+Shared Drive folder for large final-project artifacts:
+
+```text
+https://drive.google.com/drive/folders/1tsoPTxmma0zwSq6joeECTWdvIRgmKMWq?usp=sharing
+```
+
 Rules:
 - Put one Markdown note here per meaningful run.
 - Keep large outputs in `artifacts/`.
