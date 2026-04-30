@@ -1,71 +1,20 @@
 \documentclass{article}
 
-% if you need to pass options to natbib, use, e.g.:
-%     \PassOptionsToPackage{numbers, compress}{natbib}
-% before loading 'style'
+\usepackage[preprint]{neurips_2025}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{array}
 
-% The authors should use one of these tracks.
-% Before accepting by the NeurIPS conference, select one of the options below.
-% 0. "default" for submission
- % \usepackage{neurips_2025}
-% the "default" option is equal to the "main" option, which is used for the Main Track with double-blind reviewing.
-% 1. "main" option is used for the Main Track
- % \usepackage[main]{neurips_2025}
-% 2. "position" option is used for the Position Paper Track
-%  \usepackage[position]{neurips_2025}
-% 3. "dandb" option is used for the Datasets & Benchmarks Track
- % \usepackage[dandb]{neurips_2025}
-% 4. "creativeai" option is used for the Creative AI Track
-%  \usepackage[creativeai]{neurips_2025}
-% 5. "sglblindworkshop" option is used for the Workshop with single-blind reviewing
- % \usepackage[sglblindworkshop]{neurips_2025}
-% 6. "dblblindworkshop" option is used for the Workshop with double-blind reviewing
-%  \usepackage[dblblindworkshop]{neurips_2025}
-
-% After being accepted, the authors should add "final" behind the track to compile a camera-ready version.
-% 1. Main Track
-% \usepackage[main, final]{neurips_2025}
-% 2. Position Paper Track
-%  \usepackage[position, final]{neurips_2025}
-% 3. Datasets & Benchmarks Track
- % \usepackage[dandb, final]{neurips_2025}
-% 4. Creative AI Track
-%  \usepackage[creativeai, final]{neurips_2025}
-% 5. Workshop with single-blind reviewing
-%  \usepackage[sglblindworkshop, final]{neurips_2025}
-% 6. Workshop with double-blind reviewing
-%  \usepackage[dblblindworkshop, final]{neurips_2025}
-% Note. For the workshop paper template, both \title{} and \workshoptitle{} are required, with the former indicating the paper title shown in the title and the latter indicating the workshop title displayed in the footnote.
-% For workshops (5., 6.), the authors should add the name of the workshop, "\workshoptitle" command is used to set the workshop title.
-% \workshoptitle{WORKSHOP TITLE}
-% "preprint" option is used for arXiv or other preprint submissions
- \usepackage[preprint]{neurips_2025}
-
-% to avoid loading the natbib package, add option nonatbib:
-%    \usepackage[nonatbib]{neurips_2025}
-
-\usepackage[utf8]{inputenc} % allow utf-8 input
-\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
-\usepackage{hyperref}       % hyperlinks
-\usepackage{url}            % simple URL typesetting
-\usepackage{booktabs}       % professional-quality tables
-\usepackage{amsfonts}       % blackboard math symbols
-\usepackage{nicefrac}       % compact symbols for 1/2, etc.
-\usepackage{microtype}      % microtypography
-\usepackage{xcolor}         % colors
-
-% Note. For the workshop paper template, both \title{} and \workshoptitle{} are required, with the former indicating the paper title shown in the title and the latter indicating the workshop title displayed in the footnote. 
-\title{Formatting Instructions For NeurIPS 2025}
-
-
-% The \author macro works with any number of authors. There are two commands
-% used to separate the names and addresses of multiple authors: \And and \AND.
-%
-% Using \And between authors leaves it to LaTeX to determine where to break the
-% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
-% authors names on the first line, and the last on the second line, try using
-% \AND instead of \And before the third author name.
-
+\title{Trajectory Supervision for Continual Tool-Use Learning in LLMs}
 
 \author{%
   Vishnu Vardhan Reddy B \\
@@ -82,373 +31,251 @@
   CS 590NN \\
   UMass Amherst \\
   \texttt{sbhatta@umass.edu} \\
-  % examples of more authors
-  % \And
-  % Coauthor \\
-  % Affiliation \\
-  % Address \\
-  % \texttt{email} \\
 }
-
 
 \begin{document}
 
-
 \maketitle
 
-
 \begin{abstract}
-  The abstract paragraph should be indented \nicefrac{1}{2}~inch (3~picas) on
-  both the left- and right-hand margins. Use 10~point type, with a vertical
-  spacing (leading) of 11~points.  The word \textbf{Abstract} must be centered,
-  bold, and in point size 12. Two line spaces precede the abstract. The abstract
-  must be limited to one paragraph.
+Most language-model training data shows final artifacts, not the process that produced them. We study a tractable version of this question in tool use: when a model learns a stream of new API domains, does keeping tool-use trajectories help compared with stripping the intermediate API trace? We fine-tune Llama 3.1 8B Instruct with QLoRA on API-Bank using four sequential domain blocks. Condition A strips previous API request/response lines from the prompt and trains the model to predict the next API call. Condition B keeps the trajectory context. In a single-seed pilot, full held-out generation evaluation shows that Condition B reaches 56.9\% final exact full-call accuracy compared with 39.2\% for Condition A. B also improves final API-name accuracy by 7.7 points. The result is promising but not conclusive: B uses 25.1\% more training tokens, the run uses one seed, and the task is next-call prediction rather than full dialogue success.
 \end{abstract}
 
+\section{Introduction}
 
-\section{Submission of final project papers}
+Language models are usually trained on finished text: answers, articles, code, and other final products. The intermediate process that produced the answer is usually missing. That gap motivates process-supervision work in reasoning \citep{lightman2023verify}, but it is hard to test directly because real human thought traces are private, expensive, and often unavailable.
 
+Tool-use data gives a narrower but concrete proxy. A tool-use example can include a user request, an API call, the API response, and the next assistant action. These traces are not human internal reasoning. They are external interaction records. Still, they expose an action-observation sequence that final-response data removes. Our project asks whether this extra trajectory signal changes how a model adapts when tool domains arrive sequentially.
 
-Please read the instructions below carefully and follow them faithfully.
+We use continual learning as a stress test, not as a new algorithmic contribution. If two supervision formats perform similarly on one domain, differences may become clearer when the model learns a sequence of new domains and must retain older ones. We therefore split API-Bank \citep{li2023apibank} into four sequential blocks and evaluate after each training block on all blocks.
 
-\subsection{Content}
-Papers to be submitted must include the following sections:
-\begin{itemize}
-    \item Abstract: Write a brief summary of your entire paper, including parts from each section. 
-    \item Introduction: Provide information about why your topic is important/relevant.
-    \item Related Works: Discuss relevant prior work and position your contributions within the existing literature.
-    \item Method: Describe your proposed approach in detail. Use mathematical notation where appropriate.
-    \item Experiments: Present your experimental results with appropriate baselines and ablation studies.
-    \item Conclusion: Summarize your contributions, and discuss limitations and future directions.
-    \item Contribution Table: Describe the work each student in the group completed.
-    \item References
+The novel part of this project is the controlled pilot framing: we compare a stripped-context next-API-call baseline against a trajectory-context baseline under the same model, seed, stream ordering, QLoRA setup, and evaluation code. This is not a claim that we solved catastrophic forgetting, and it is not a claim that API traces are equivalent to human thought. It is a first controlled measurement of whether retaining tool-use trajectory information changes continual tool-call learning.
+
+Our main findings are:
+\begin{itemize}[leftmargin=*]
+    \item Full held-out generation evaluation favors trajectory context. After training on all four blocks, Condition B reaches 56.9\% exact full-call accuracy, compared with 39.2\% for Condition A.
+    \item The largest improvement is in selecting the right tool. B reduces final wrong-API errors from 102 to 12, while exact parameter generation remains imperfect.
+    \item The evidence is limited by one seed and a token-budget confound. B trains on 2.32M tokens versus 1.86M for A, so the result supports a hypothesis but does not isolate the cause.
 \end{itemize}
 
+\section{Related work}
 
-\subsection{Style}
+\paragraph{Process supervision.}
+Lightman et al.\ compare process and outcome supervision for mathematical reasoning and show that step-level supervision can be more effective than final-answer supervision \citep{lightman2023verify}. Our work is inspired by that distinction, but our data is different. API trajectories are not annotated reasoning steps; they are records of tool calls and tool observations. This makes the supervision weaker as a cognitive model but easier to collect in real systems.
 
+\paragraph{Tool-use learning.}
+Toolformer showed that language models can learn to call external tools from self-supervised tool-use traces \citep{schick2023toolformer}. API-Bank provides a compact benchmark for tool-augmented language models with API calls, responses, and dialogue context \citep{li2023apibank}. ToolLLM and ToolBench scale this idea to many real-world APIs and solution paths \citep{qin2023toolllm}. We use API-Bank because it is small enough for repeated QLoRA experiments in a course project while still containing structured tool-call supervision.
 
-Papers to be submitted to NeurIPS 2025 must be prepared according to the
-instructions presented here. Papers must be at least {\bf five} pages and may only be up to {\bf nine} pages long,
-including figures.
-% Additional pages \emph{containing only acknowledgments and references} are allowed.
-Additional pages \emph{containing references, checklist, and the optional technical appendices} do not count as content pages.
-Papers that exceed the page limit will not be
-reviewed, or in any other way considered for presentation at the conference.
+\paragraph{Continual learning in LLMs.}
+Sequential fine-tuning can damage previously learned behavior. TRACE formalizes continual learning evaluation for LLMs and reports severe forgetting under sequential training \citep{wang2023trace}. We borrow the evaluation lens: after training on block $D_i$, evaluate on all blocks $D_j$. Our aim is not to introduce a new forgetting method such as replay or regularization. Instead, we ask whether the supervision format itself changes adaptation and retention.
 
+\paragraph{Efficient adaptation.}
+LoRA trains low-rank adapter weights instead of updating all parameters \citep{hu2022lora}. QLoRA adds 4-bit quantization to make fine-tuning larger models feasible on limited hardware \citep{dettmers2023qlora}. We use QLoRA with Llama 3.1 8B Instruct \citep{dubey2024llama} so that both conditions can be trained and checkpointed in Colab.
 
-The margins in 2025 are the same as those in previous years.
+\section{Method}
 
+\subsection{Task and data}
 
-Authors are required to use the NeurIPS \LaTeX{} style files obtainable at the
-NeurIPS website as indicated below. Please make sure you use the current files
-and not previous versions. Tweaking the style files may be grounds for
-rejection.
+We use API-Bank and construct a stream of four domain blocks, $D_1$ through $D_4$. Each block contains a disjoint set of API examples. Training proceeds sequentially: train on $D_1$, evaluate on all blocks, then train on $D_2$, and so on. This produces a $4 \times 4$ evaluation matrix. Rows are training stage and columns are evaluation block.
 
+The full held-out generation evaluation scores only examples whose expected output contains a parseable API call. The final-stage scored evaluation totals are 126, 104, 103, and 107 examples for blocks $D_1$ through $D_4$, respectively. The training notebooks also run a faster sampled evaluation with 32 examples per block after each stage.
 
-\subsection{Retrieval of style files}
+\subsection{Conditions}
 
+Condition A is the stripped-context baseline. It removes prior \texttt{API-Request} and \texttt{API-Response} lines from the input context before training and generation evaluation. It still predicts the next API call when the target output is an API call. This is narrower than the original proposal's broad ``outcome-only'' framing, so we describe it as stripped-context next-call supervision.
 
-The style files for NeurIPS and other conference information are available on
-the website at
-\begin{center}
-  \url{https://neurips.cc}
-\end{center}
-The file \verb+neurips_2025.pdf+ contains these instructions and illustrates the
-various formatting requirements your NeurIPS paper must satisfy.
+Condition B is the trajectory-context condition. It keeps the previous API request and response lines in the prompt. This gives the model access to the action-observation sequence before the next API call. Both conditions use the same base model, stream ordering, seed, optimizer settings, and scoring code.
 
+\subsection{Model and training}
 
-The only supported style file for NeurIPS 2025 is \verb+neurips_2025.sty+,
-rewritten for \LaTeXe{}.  \textbf{Previous style files for \LaTeX{} 2.09,
-  Microsoft Word, and RTF are no longer supported!}
+All runs use \texttt{meta-llama/Llama-3.1-8B-Instruct}. We fine-tune with QLoRA using 4-bit NF4 quantization, LoRA rank 32, LoRA alpha 64, bfloat16 computation, maximum sequence length 1024, and an effective batch size of 16. Each block is trained for three epochs. The training runs use seed 42.
 
+The main fairness limitation is token count. Condition A consumes 1,857,169 training tokens; Condition B consumes 2,324,314 training tokens. B therefore sees 25.1\% more tokens because trajectory context is longer. We report this explicitly and treat token-matched training as future work.
 
-The \LaTeX{} style file contains three optional arguments: \verb+final+, which
-creates a camera-ready copy, \verb+preprint+, which creates a preprint for
-submission to, e.g., arXiv, and \verb+nonatbib+, which will not load the
-\verb+natbib+ package for you in case of package clash.
+\subsection{Evaluation metrics}
 
+For generation, we greedily decode the model's next action and parse API calls with a regular expression of the form \texttt{[ApiName(param='value')]}. We report:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{API-name accuracy}: the generated API name matches the expected API name.
+    \item \textbf{Exact full-call accuracy}: the generated API name and normalized parameter dictionary exactly match the expected call.
+    \item \textbf{Name-plus-any-param accuracy}: the API name is correct and at least one expected parameter-value pair is correct.
+    \item \textbf{Malformed/no-call rate}: the generated text does not contain a parseable API call.
+\end{itemize}
 
-\paragraph{Preprint option}
-If you wish to post a preprint of your work online, e.g., on arXiv, using the
-NeurIPS style, please use the \verb+preprint+ option. This will create a
-nonanonymized version of your work with the text ``Preprint. Work in progress.''
-in the footer. This version may be distributed as you see fit, as long as you do not say which conference it was submitted to. Please \textbf{do
-  not} use the \verb+final+ option, which should \textbf{only} be used for
-papers accepted to NeurIPS.
+For the sampled continual-learning analysis, we also compute average accuracy (AA), backward transfer (BWT), forward transfer (FWT), average forgetting, and area under the learning curve (AULC) using exact full-call accuracy.
 
+\section{Results}
 
-At submission time, please omit the \verb+final+ and \verb+preprint+
-options. This will anonymize your submission and add line numbers to aid
-review. Please do \emph{not} refer to these line numbers in your paper as they
-will be removed during generation of camera-ready copies.
+\subsection{Sampled continual-learning evaluation}
 
+Table~\ref{tab:sampled} summarizes the 32-example-per-block evaluation produced during training. B has higher final average accuracy and higher forward transfer, but it also has more negative BWT and larger average forgetting under this sampled metric. This means B is not simply better on every continual-learning statistic; it learns the next-call format more effectively, but it can still lose performance on earlier blocks.
 
-The file \verb+neurips_2025.tex+ may be used as a ``shell'' for writing your
-paper. All you have to do is replace the author, title, abstract, and text of
-the paper with your own.
-
-
-The formatting instructions contained in these style files are summarized in
-Sections \ref{gen_inst}, \ref{headings}, and \ref{others} below.
-
-
-\section{General formatting instructions}
-\label{gen_inst}
-
-
-The text must be confined within a rectangle 5.5~inches (33~picas) wide and
-9~inches (54~picas) long. The left margin is 1.5~inch (9~picas).  Use 10~point
-type with a vertical spacing (leading) of 11~points.  Times New Roman is the
-preferred typeface throughout, and will be selected for you by default.
-Paragraphs are separated by \nicefrac{1}{2}~line space (5.5 points), with no
-indentation.
-
-
-The paper title should be 17~point, initial caps/lower case, bold, centered
-between two horizontal rules. The top rule should be 4~points thick and the
-bottom rule should be 1~point thick. Allow \nicefrac{1}{4}~inch space above and
-below the title to rules. All pages should start at 1~inch (6~picas) from the
-top of the page.
-
-
-For the final version, authors' names are set in boldface, and each name is
-centered above the corresponding address. The lead author's name is to be listed
-first (left-most), and the co-authors' names (if different address) are set to
-follow. If there is only one co-author, list both author and co-author side by
-side.
-
-
-Please pay special attention to the instructions in Section \ref{others}
-regarding figures, tables, acknowledgments, and references.
-
-\section{Headings: first level}
-\label{headings}
-
-
-All headings should be lower case (except for first word and proper nouns),
-flush left, and bold.
-
-
-First-level headings should be in 12-point type.
-
-
-\subsection{Headings: second level}
-
-
-Second-level headings should be in 10-point type.
-
-
-\subsubsection{Headings: third level}
-
-
-Third-level headings should be in 10-point type.
-
-
-\paragraph{Paragraphs}
-
-
-There is also a \verb+\paragraph+ command available, which sets the heading in
-bold, flush left, and inline with the text, with the heading followed by 1\,em
-of space.
-
-
-\section{Citations, figures, tables, references}
-\label{others}
-
-
-These instructions apply to everyone.
-
-
-\subsection{Citations within the text}
-
-
-The \verb+natbib+ package will be loaded for you by default.  Citations may be
-author/year or numeric, as long as you maintain internal consistency.  As to the
-format of the references themselves, any style is acceptable as long as it is
-used consistently.
-
-
-The documentation for \verb+natbib+ may be found at
-\begin{center}
-  \url{http://mirrors.ctan.org/macros/latex/contrib/natbib/natnotes.pdf}
-\end{center}
-Of note is the command \verb+\citet+, which produces citations appropriate for
-use in inline text.  For example,
-\begin{verbatim}
-   \citet{hasselmo} investigated\dots
-\end{verbatim}
-produces
-\begin{quote}
-  Hasselmo, et al.\ (1995) investigated\dots
-\end{quote}
-
-
-If you wish to load the \verb+natbib+ package with options, you may add the
-following before loading the \verb+neurips_2025+ package:
-\begin{verbatim}
-   \PassOptionsToPackage{options}{natbib}
-\end{verbatim}
-
-
-If \verb+natbib+ clashes with another package you load, you can add the optional
-argument \verb+nonatbib+ when loading the style file:
-\begin{verbatim}
-   \usepackage[nonatbib]{neurips_2025}
-\end{verbatim}
-
-
-As submission is double blind, refer to your own published work in the third
-person. That is, use ``In the previous work of Jones et al.\ [4],'' not ``In our
-previous work [4].'' If you cite your other papers that are not widely available
-(e.g., a journal paper under review), use anonymous author names in the
-citation, e.g., an author of the form ``A.\ Anonymous'' and include a copy of the anonymized paper in the supplementary material.
-
-
-\subsection{Footnotes}
-
-
-Footnotes should be used sparingly.  If you do require a footnote, indicate
-footnotes with a number\footnote{Sample of the first footnote.} in the
-text. Place the footnotes at the bottom of the page on which they appear.
-Precede the footnote with a horizontal rule of 2~inches (12~picas).
-
-
-Note that footnotes are properly typeset \emph{after} punctuation
-marks.\footnote{As in this example.}
-
-
-\subsection{Figures}
-
-
-\begin{figure}
-  \centering
-  \fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
-  \caption{Sample figure caption.}
-\end{figure}
-
-
-All artwork must be neat, clean, and legible. Lines should be dark enough for
-purposes of reproduction. The figure number and caption always appear after the
-figure. Place one line space before the figure caption and one line space after
-the figure. The figure caption should be lower case (except for first word and
-proper nouns); figures are numbered consecutively.
-
-
-You may use color figures.  However, it is best for the figure captions and the
-paper body to be legible if the paper is printed in either black/white or in
-color.
-
-
-\subsection{Tables}
-
-
-All tables must be centered, neat, clean and legible.  The table number and
-title always appear before the table.  See Table~\ref{sample-table}.
-
-
-Place one line space before the table title, one line space after the
-table title, and one line space after the table. The table title must
-be lower case (except for first word and proper nouns); tables are
-numbered consecutively.
-
-
-Note that publication-quality tables \emph{do not contain vertical rules.} We
-strongly suggest the use of the \verb+booktabs+ package, which allows for
-typesetting high-quality, professional tables:
-\begin{center}
-  \url{https://www.ctan.org/pkg/booktabs}
-\end{center}
-This package was used to typeset Table~\ref{sample-table}.
-
-
-\begin{table}
-  \caption{Sample table title}
-  \label{sample-table}
-  \centering
-  \begin{tabular}{lll}
-    \toprule
-    \multicolumn{2}{c}{Part}                   \\
-    \cmidrule(r){1-2}
-    Name     & Description     & Size ($\mu$m) \\
-    \midrule
-    Dendrite & Input terminal  & $\sim$100     \\
-    Axon     & Output terminal & $\sim$10      \\
-    Soma     & Cell body       & up to $10^6$  \\
-    \bottomrule
-  \end{tabular}
+\begin{table}[t]
+\centering
+\caption{Sampled generation evaluation from the training notebook. Scores are exact full-call accuracy unless noted.}
+\label{tab:sampled}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+Condition & Final AA & BWT & FWT & Avg. forgetting & AULC & Train tokens \\
+\midrule
+A: stripped context & 38.3 & -10.4 & 22.9 & 10.4 & 41.8 & 1.86M \\
+B: trajectory context & 53.9 & -13.5 & 33.3 & 13.5 & 57.2 & 2.32M \\
+\bottomrule
+\end{tabular}}
 \end{table}
 
-\subsection{Math}
-Note that display math in bare TeX commands will not create correct line numbers for submission. Please use LaTeX (or AMSTeX) commands for unnumbered display math. (You really shouldn't be using \$\$ anyway; see \url{https://tex.stackexchange.com/questions/503/why-is-preferable-to} and \url{https://tex.stackexchange.com/questions/40492/what-are-the-differences-between-align-equation-and-displaymath} for more information.)
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/sampled_eval_summary.png}
+\caption{Sampled evaluation used during training. Condition B obtains lower loss and higher full-call accuracy in the sampled analysis, while both conditions show nonzero forgetting.}
+\label{fig:sampled}
+\end{figure}
 
-\subsection{Final instructions}
+\subsection{Full held-out generation evaluation}
 
-Do not change any aspects of the formatting parameters in the style files.  In
-particular, do not modify the width or length of the rectangle the text should
-fit into, and do not change font sizes (except perhaps in the
-\textbf{References} section; see below). Please note that pages should be
-numbered.
+After training, we ran a separate full generation evaluation over every scored held-out example for each saved adapter. This removes the 32-example sampling limit used during training. Figure~\ref{fig:fullheat} shows the exact full-call accuracy matrices.
 
-\subsection{Margins in \LaTeX{}}
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.92\linewidth]{figures/full_eval_exact_full_heatmaps_seed42.png}
+\caption{Full held-out exact full-call accuracy. Rows are training stages and columns are evaluation blocks. Condition B is higher on every final-stage block and most earlier stages.}
+\label{fig:fullheat}
+\end{figure}
 
+The final-stage comparison is the clearest result. Condition B reaches 56.9\% mean exact full-call accuracy, compared with 39.2\% for Condition A, a difference of 17.7 percentage points. On API-name accuracy, B reaches 74.3\% compared with 66.6\% for A, a difference of 7.7 points. Table~\ref{tab:fullfinal} shows the final-stage block-level results.
 
-Most of the margin problems come from figures positioned by hand using
-\verb+\special+ or other commands. We suggest using the command
-\verb+\includegraphics+ from the \verb+graphicx+ package. Always specify the
-figure width as a multiple of the line width as in the example below:
-\begin{verbatim}
-   \usepackage[pdftex]{graphicx} ...
-   \includegraphics[width=0.8\linewidth]{myfile.pdf}
-\end{verbatim}
-See Section 4.4 in the graphics bundle documentation
-(\url{http://mirrors.ctan.org/macros/latex/required/graphics/grfguide.pdf})
+\begin{table}[t]
+\centering
+\caption{Full held-out final-stage generation results after training through $D_4$.}
+\label{tab:fullfinal}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{llrrrrr}
+\toprule
+Condition & Metric & D1 & D2 & D3 & D4 & Mean \\
+\midrule
+A & Exact full-call & 35.7 & 43.3 & 32.0 & 45.8 & 39.2 \\
+B & Exact full-call & 57.9 & 61.5 & 44.7 & 63.6 & 56.9 \\
+\midrule
+A & API-name & 64.3 & 62.5 & 60.2 & 79.4 & 66.6 \\
+B & API-name & 73.8 & 82.7 & 67.0 & 73.8 & 74.3 \\
+\midrule
+A & Name + any param & 51.6 & 56.7 & 50.5 & 65.4 & 56.1 \\
+B & Name + any param & 67.5 & 76.9 & 61.2 & 72.0 & 69.4 \\
+\bottomrule
+\end{tabular}}
+\end{table}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.82\linewidth]{figures/full_eval_final_accuracy_by_block_seed42.png}
+\caption{Final-stage full evaluation by block. B improves exact full-call and name-plus-any-param accuracy on every block.}
+\label{fig:finalblock}
+\end{figure}
 
-A number of width problems arise when \LaTeX{} cannot properly hyphenate a
-line. Please give LaTeX hyphenation hints using the \verb+\-+ command when
-necessary.
+\subsection{Error analysis}
 
-\section*{References}
+The error categories clarify what trajectory context changed. At the final stage, A produced 102 wrong-API errors, while B produced only 12. This supports the interpretation that trajectory context helps the model choose the correct tool. However, B also produced 101 malformed/no-call errors, compared with 45 for A. The B model often had the right tool structure at the name level but did not always produce an exactly parseable or parameter-complete call.
 
+\begin{table}[t]
+\centering
+\caption{Final-stage full-eval error category counts across all scored blocks.}
+\label{tab:errors}
+\begin{tabular}{lrr}
+\toprule
+Category & A & B \\
+\midrule
+Exact full call & 172 & 251 \\
+Correct API, some params & 74 & 54 \\
+Correct API, wrong params & 47 & 22 \\
+Wrong API & 102 & 12 \\
+Malformed or no call & 45 & 101 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-References follow the acknowledgments in the camera-ready paper. Use unnumbered first-level heading for
-the references. Any choice of citation style is acceptable as long as you are
-consistent. It is permissible to reduce the font size to \verb+small+ (9 point)
-when listing the references.
-Note that the Reference section does not count towards the page limit.
-\medskip
+\section{Discussion}
 
+The main result supports the project hypothesis in a limited form: keeping trajectory context improves final held-out next-API-call generation in this single-seed API-Bank stream. The improvement is strongest for tool selection. This is consistent with the idea that the action-observation history gives the model useful structure for deciding which API comes next.
 
-{
+At the same time, the result is not a clean proof that process supervision is inherently better. First, Condition B has a larger token budget. More tokens can improve performance even if the extra content is not causally important. Second, the experiment uses one seed, so we do not have confidence intervals. Third, API-Bank traces are structured and partly synthetic; they are not real human reasoning traces. Fourth, our task is next API-call prediction, not full end-to-end task success. These limitations matter and should constrain the claim.
+
+The malformed/no-call result is also important. B makes fewer wrong tool choices, but it makes more parse failures. One explanation is that trajectory inputs expose more formatting patterns and longer contexts, which can improve tool identity while making exact output formatting brittle. Another possibility is that our parser is strict and counts semantically close outputs as failures. Future work should include both strict exact-match scoring and a semantic parameter scorer.
+
+\section{Conclusion and future work}
+
+We tested whether trajectory context changes continual tool-use learning in a controlled Llama 3.1 8B QLoRA pilot. The full held-out evaluation shows a clear advantage for trajectory context on final exact API-call generation: 56.9\% versus 39.2\%. The result is promising, but it remains a pilot because the trajectory condition uses more tokens and the experiment uses one seed.
+
+The next steps are straightforward. First, run at least three seeds and report confidence intervals. Second, train a token-matched B condition so that the comparison isolates trajectory content rather than token volume. Third, expand the stream beyond four blocks and evaluate whether the same trend holds on longer task sequences. Fourth, improve scoring to separate exact string-format failures from genuinely wrong tool use. Finally, future work can test replay or retrieval memory, but those should be treated as new continual-learning methods rather than as part of the core A/B supervision comparison.
+
+\section{Contributions}
+
+\begin{table}[h]
+\centering
+\caption{Project contribution summary.}
+\label{tab:contrib}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{0.27\linewidth}p{0.65\linewidth}}
+\toprule
+Student & Contributions \\
+\midrule
+Vishnu Vardhan Reddy B & Project framing, proposal, notebook implementation and integration, GitHub issue coordination, artifact validation, final report and presentation assembly. \\
+Sagnik Chatterjee & Colab run coordination and verification support for the stripped-context and full-eval workstreams; review of experiment handoff requirements. \\
+Soumik Bhatta & Colab execution and logging for the A/B training and analysis runs; artifact reporting for condition runs and final analysis outputs. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \small
 
+\begin{thebibliography}{9}
 
-[1] Alexander, J.A.\ \& Mozer, M.C.\ (1995) Template-based algorithms for
-connectionist rule extraction. In G.\ Tesauro, D.S.\ Touretzky and T.K.\ Leen
-(eds.), {\it Advances in Neural Information Processing Systems 7},
-pp.\ 609--616. Cambridge, MA: MIT Press.
+\bibitem[Dettmers et al.(2023)]{dettmers2023qlora}
+Tim Dettmers, Artidoro Pagnoni, Ari Holtzman, and Luke Zettlemoyer.
+\newblock QLoRA: Efficient finetuning of quantized LLMs.
+\newblock \emph{NeurIPS}, 2023.
 
+\bibitem[Dubey et al.(2024)]{dubey2024llama}
+Abhimanyu Dubey et al.
+\newblock The Llama 3 herd of models.
+\newblock \emph{arXiv:2407.21783}, 2024.
 
-[2] Bower, J.M.\ \& Beeman, D.\ (1995) {\it The Book of GENESIS: Exploring
-  Realistic Neural Models with the GEneral NEural SImulation System.}  New York:
-TELOS/Springer--Verlag.
+\bibitem[Hu et al.(2022)]{hu2022lora}
+Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen.
+\newblock LoRA: Low-rank adaptation of large language models.
+\newblock \emph{ICLR}, 2022.
 
+\bibitem[Li et al.(2023)]{li2023apibank}
+Minghao Li, Yingxiu Zhao, Bowen Yu, Feifan Song, Hangyu Li, Haiyang Yu, Zhoujun Li, Fei Huang, and Yongbin Li.
+\newblock API-Bank: A comprehensive benchmark for tool-augmented LLMs.
+\newblock \emph{arXiv:2304.08244}, 2023.
 
-[3] Hasselmo, M.E., Schnell, E.\ \& Barkai, E.\ (1995) Dynamics of learning and
-recall at excitatory recurrent synapses and cholinergic modulation in rat
-hippocampal region CA3. {\it Journal of Neuroscience} {\bf 15}(7):5249-5262.
-}
+\bibitem[Lightman et al.(2023)]{lightman2023verify}
+Hunter Lightman et al.
+\newblock Let's verify step by step.
+\newblock \emph{arXiv:2305.20050}, 2023.
 
+\bibitem[Lopez-Paz and Ranzato(2017)]{lopezpaz2017gem}
+David Lopez-Paz and Marc'Aurelio Ranzato.
+\newblock Gradient episodic memory for continual learning.
+\newblock \emph{NeurIPS}, 2017.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibitem[Qin et al.(2023)]{qin2023toolllm}
+Yujia Qin et al.
+\newblock ToolLLM: Facilitating large language models to master 16000+ real-world APIs.
+\newblock \emph{arXiv:2307.16789}, 2023.
 
-\appendix
+\bibitem[Schick et al.(2023)]{schick2023toolformer}
+Timo Schick, Jane Dwivedi-Yu, Roberto Dessi, Roberta Raileanu, Maria Lomeli, Luke Zettlemoyer, Nicola Cancedda, and Thomas Scialom.
+\newblock Toolformer: Language models can teach themselves to use tools.
+\newblock \emph{NeurIPS}, 2023.
 
-\section{Technical Appendices and Supplementary Material}
-Technical appendices with additional results, figures, graphs and proofs may be submitted with the paper submission before the full submission deadline (see above), or as a separate PDF in the ZIP file below before the supplementary material deadline. There is no page limit for the technical appendices.
+\bibitem[Wang et al.(2023)]{wang2023trace}
+Xiao Wang et al.
+\newblock TRACE: A comprehensive benchmark for continual learning in large language models.
+\newblock \emph{arXiv:2310.06762}, 2023.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+\end{thebibliography}
 
 \end{document}
