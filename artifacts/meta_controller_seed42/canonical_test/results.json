@@ -1,0 +1,119 @@
+{
+  "order_name": "canonical_test",
+  "order": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "seed": 42,
+  "model_name": "meta-llama/Llama-3.1-8B-Instruct",
+  "smoke_test": false,
+  "frozen_policy_schedule": [
+    "B",
+    "B",
+    "B",
+    "B"
+  ],
+  "final_eval_condition": "B",
+  "training_history": [
+    {
+      "stage": 1,
+      "block_id": 1,
+      "policy": "B",
+      "validation_used": false,
+      "test_used": false,
+      "train_loss": 0.1562535806496938,
+      "adapter_path": "adapters/canonical_test/candidate_D1_B"
+    },
+    {
+      "stage": 2,
+      "block_id": 2,
+      "policy": "B",
+      "validation_used": false,
+      "test_used": false,
+      "train_loss": 0.1196516677737236,
+      "adapter_path": "adapters/canonical_test/candidate_D2_B"
+    },
+    {
+      "stage": 3,
+      "block_id": 3,
+      "policy": "B",
+      "validation_used": false,
+      "test_used": false,
+      "train_loss": 0.12203706487228996,
+      "adapter_path": "adapters/canonical_test/candidate_D3_B"
+    },
+    {
+      "stage": 4,
+      "block_id": 4,
+      "policy": "B",
+      "validation_used": false,
+      "test_used": false,
+      "train_loss": 0.11557868371407191,
+      "adapter_path": "adapters/canonical_test/candidate_D4_B"
+    }
+  ],
+  "final_test_metrics": {
+    "1": {
+      "total": 23,
+      "exact_full": 9,
+      "name": 18,
+      "valid": 18,
+      "malformed_or_no_call": 5,
+      "wrong_api": 0,
+      "wrong_params": 9,
+      "exact_acc": 0.391304347826087,
+      "name_acc": 0.782608695652174,
+      "valid_rate": 0.782608695652174,
+      "malformed_rate": 0.21739130434782608,
+      "wrong_api_rate": 0.0
+    },
+    "2": {
+      "total": 28,
+      "exact_full": 13,
+      "name": 23,
+      "valid": 26,
+      "malformed_or_no_call": 2,
+      "wrong_api": 3,
+      "wrong_params": 10,
+      "exact_acc": 0.4642857142857143,
+      "name_acc": 0.8214285714285714,
+      "valid_rate": 0.9285714285714286,
+      "malformed_rate": 0.07142857142857142,
+      "wrong_api_rate": 0.10714285714285714
+    },
+    "3": {
+      "total": 30,
+      "exact_full": 10,
+      "name": 18,
+      "valid": 22,
+      "malformed_or_no_call": 8,
+      "wrong_api": 4,
+      "wrong_params": 8,
+      "exact_acc": 0.3333333333333333,
+      "name_acc": 0.6,
+      "valid_rate": 0.7333333333333333,
+      "malformed_rate": 0.26666666666666666,
+      "wrong_api_rate": 0.13333333333333333
+    },
+    "4": {
+      "total": 37,
+      "exact_full": 20,
+      "name": 31,
+      "valid": 32,
+      "malformed_or_no_call": 5,
+      "wrong_api": 1,
+      "wrong_params": 11,
+      "exact_acc": 0.5405405405405406,
+      "name_acc": 0.8378378378378378,
+      "valid_rate": 0.8648648648648649,
+      "malformed_rate": 0.13513513513513514,
+      "wrong_api_rate": 0.02702702702702703
+    }
+  },
+  "final_metrics_role": "held-out API families only",
+  "validation_used": false,
+  "test_used_for_selection": false,
+  "total_time_seconds": 2625.791612625122
+}

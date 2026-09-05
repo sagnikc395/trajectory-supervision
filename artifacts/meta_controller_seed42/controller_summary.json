@@ -1,0 +1,172 @@
+{
+  "experiment": "meta_controller",
+  "seed": 42,
+  "model_name": "meta-llama/Llama-3.1-8B-Instruct",
+  "smoke_test": false,
+  "token_matched": true,
+  "run_complete": false,
+  "controller_score": "0.50 exact + 0.20 name + 0.20 valid - 0.05 malformed - 0.05 wrong_api",
+  "policy_schedule": [
+    "B",
+    "B",
+    "B",
+    "B"
+  ],
+  "controller_decisions": [
+    {
+      "stage": 1,
+      "block_id": 1,
+      "selected_policy": "B",
+      "candidate_scores": {
+        "A": 0.490909,
+        "B": 0.604545
+      },
+      "candidate_validation_aggregate": {
+        "A": {
+          "exact_acc": 0.363636,
+          "name_acc": 0.636364,
+          "valid_rate": 1.0,
+          "malformed_rate": 0.0,
+          "wrong_api_rate": 0.363636
+        },
+        "B": {
+          "exact_acc": 0.636364,
+          "name_acc": 0.727273,
+          "valid_rate": 0.772727,
+          "malformed_rate": 0.227273,
+          "wrong_api_rate": 0.045455
+        }
+      }
+    },
+    {
+      "stage": 2,
+      "block_id": 2,
+      "selected_policy": "B",
+      "candidate_scores": {
+        "A": 0.4625,
+        "B": 0.585606
+      },
+      "candidate_validation_aggregate": {
+        "A": {
+          "exact_acc": 0.287879,
+          "name_acc": 0.674242,
+          "valid_rate": 1.0,
+          "malformed_rate": 0.0,
+          "wrong_api_rate": 0.325758
+        },
+        "B": {
+          "exact_acc": 0.484848,
+          "name_acc": 0.863636,
+          "valid_rate": 0.886364,
+          "malformed_rate": 0.113636,
+          "wrong_api_rate": 0.022727
+        }
+      }
+    },
+    {
+      "stage": 3,
+      "block_id": 3,
+      "selected_policy": "B",
+      "candidate_scores": {
+        "A": 0.374527,
+        "B": 0.509975
+      },
+      "candidate_validation_aggregate": {
+        "A": {
+          "exact_acc": 0.193182,
+          "name_acc": 0.528409,
+          "valid_rate": 0.979167,
+          "malformed_rate": 0.020833,
+          "wrong_api_rate": 0.450758
+        },
+        "B": {
+          "exact_acc": 0.362374,
+          "name_acc": 0.825758,
+          "valid_rate": 0.861742,
+          "malformed_rate": 0.138258,
+          "wrong_api_rate": 0.035985
+        }
+      }
+    },
+    {
+      "stage": 4,
+      "block_id": 4,
+      "selected_policy": "B",
+      "candidate_scores": {
+        "A": 0.379362,
+        "B": 0.456935
+      },
+      "candidate_validation_aggregate": {
+        "A": {
+          "exact_acc": 0.231789,
+          "name_acc": 0.481753,
+          "valid_rate": 0.965144,
+          "malformed_rate": 0.034856,
+          "wrong_api_rate": 0.483392
+        },
+        "B": {
+          "exact_acc": 0.336684,
+          "name_acc": 0.723339,
+          "valid_rate": 0.788789,
+          "malformed_rate": 0.211211,
+          "wrong_api_rate": 0.06545
+        }
+      }
+    }
+  ],
+  "held_out_orders": {
+    "canonical_test": {
+      "order": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "frozen_policy_schedule": [
+        "B",
+        "B",
+        "B",
+        "B"
+      ],
+      "final_eval_condition": "B",
+      "test_used_for_selection": false,
+      "per_block": {
+        "1": {
+          "exact_acc": 0.391304,
+          "name_acc": 0.782609,
+          "valid_rate": 0.782609,
+          "malformed_rate": 0.217391,
+          "wrong_api_rate": 0.0
+        },
+        "2": {
+          "exact_acc": 0.464286,
+          "name_acc": 0.821429,
+          "valid_rate": 0.928571,
+          "malformed_rate": 0.071429,
+          "wrong_api_rate": 0.107143
+        },
+        "3": {
+          "exact_acc": 0.333333,
+          "name_acc": 0.6,
+          "valid_rate": 0.733333,
+          "malformed_rate": 0.266667,
+          "wrong_api_rate": 0.133333
+        },
+        "4": {
+          "exact_acc": 0.540541,
+          "name_acc": 0.837838,
+          "valid_rate": 0.864865,
+          "malformed_rate": 0.135135,
+          "wrong_api_rate": 0.027027
+        }
+      },
+      "mean": {
+        "exact_acc": 0.432366,
+        "name_acc": 0.760469,
+        "valid_rate": 0.827345,
+        "malformed_rate": 0.172655,
+        "wrong_api_rate": 0.066876
+      }
+    }
+  }
+}

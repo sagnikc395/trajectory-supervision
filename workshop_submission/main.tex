@@ -32,7 +32,7 @@
 \maketitle
 
 \begin{abstract}
-Meta-agents need reliable ways to train and evaluate the worker agents they manage. We study whether a controller can select between two worker-agent training-context policies after each stage of a continual tool-use stream: A strips prior action--observation lines, while B retains them. The controller observes validation metrics only and carries the selected worker adapter forward; final evaluation uses API families and stream orders held out from all controller decisions. The accompanying seed-42 fixed-policy pilot finds higher final exact full-call accuracy for B (56.9\% versus 39.2\%), but also more malformed/no-call outputs and a 25.1\% larger token budget. We therefore frame the fixed-policy result as motivation and the controller protocol as the main meta-agent contribution, with reliability-aware selection and explicit safeguards against test leakage.
+Meta-agents need reliable ways to train and evaluate the worker agents they manage. We ask whether a controller can select between two worker-agent training-context policies after each stage of a continual tool-use stream: A strips prior action--observation lines, while B retains them. The controller observes validation metrics only, candidate training is token-matched, and API families are partitioned disjointly into fit, controller-validation, and final-test roles. In a completed seed-42 run the controller selected the trajectory policy B at all four stages, by validation-score margins of 0.08 to 0.14. On this stream it therefore never switches, and its behavior is indistinguishable from a fixed B policy; we report this degenerate schedule as the run's primary empirical finding rather than as evidence of adaptive selection. On held-out test families the selected worker reaches 43.2\% exact full-call accuracy, 76.0\% API-name accuracy, and an 82.7\% valid-call rate. The controller's own validation traces reproduce the tradeoff that motivates the design: A almost never emits an unparseable call but selects the wrong API in 33--48\% of cases, while B cuts wrong-API errors to 2--7\% at the cost of 11--23\% malformed or absent calls. A supervisor optimizing aggregate exact match alone would not observe this exchange.
 \end{abstract}
 
 \section{Introduction}
@@ -48,12 +48,13 @@ We also retain the earlier fixed-policy pilot as diagnostic evidence. It shows w
 Our contributions are:
 \begin{itemize}[leftmargin=*]
     \item A controller protocol that selects between two worker-agent training-context policies after each continual-learning stage using validation metrics only.
-    \item A leakage-resistant evaluation design with disjoint API-family fit, controller-validation, and final-test partitions plus held-out stream orders.
+    \item A leakage-resistant evaluation design with disjoint API-family fit, controller-validation, and final-test partitions. The protocol also specifies held-out stream orders; only the canonical order was completed in the run reported here.
     \item A reliability-aware selection score that separates tool selection, exact arguments, valid-call rate, malformed/no-call behavior, and wrong-API behavior.
-    \item A diagnostic fixed-policy comparison showing why meta-agents optimizing only aggregate exact match can select an unreliable worker policy.
+    \item An empirical result in which the selection loop is degenerate: the controller chooses the same policy at every stage, so an adaptive mechanism collapses to a fixed policy. We argue that reporting this outcome, with its decision margins, is the useful contribution for practitioners building selection-based meta-agents.
+    \item A diagnostic fixed-policy comparison, corroborated by the controller's own validation traces, showing why meta-agents optimizing only aggregate exact match can select an unreliable worker policy.
 \end{itemize}
 
-The study is deliberately component-level. We do not claim to introduce a complete self-improving meta-agent, and we do not use private reasoning traces. Controller results are not available until the GPU experiment is run; the fixed-policy pilot is reported separately as motivation and diagnostic evidence.
+The study is deliberately component-level. We do not claim to introduce a complete self-improving meta-agent, and we do not use private reasoning traces. We report one completed controller run on the canonical stream order; the reverse and rotated orders defined by the protocol were not completed and we draw no stream-order conclusions from this run. The fixed-policy pilot is reported separately as motivation and diagnostic evidence, and is not directly comparable to the controller numbers because it is scored on a different evaluation split.
 
 \section{Related Work}
 
@@ -67,10 +68,11 @@ Process supervision can outperform final-answer supervision in mathematical reas
 Sequential fine-tuning can degrade earlier capabilities, motivating evaluation protocols that measure adaptation and forgetting \citep{wang2023trace}. Our evaluation matrix follows this perspective. Efficient adaptation methods such as LoRA and QLoRA make it practical to train multiple worker-agent variants \citep{hu2021lora,dettmers2023qlora}. A controller that trains and compares these variants is a concrete instance of the post-training meta-agent studied here.
 
 \section{Worker-Agent Setup}
+\label{sec:setup}
 
 \subsection{Task and stream construction}
 
-We use API-Bank, a dataset of tool-augmented dialogues, and construct four sequential blocks $D_1,\ldots,D_4$ by grouping examples by API family. The blocks are disjoint in their assigned examples. Within each block, API families are deterministically assigned to fit, controller-validation, or final-test roles. Fit uses only original training examples; validation and test use only original held-out examples, and no API family appears in more than one role. The controller is run under canonical, reverse, and one-block-rotated stream orders. At each stage it trains candidates on fit families and observes validation metrics only. Final test-family evaluation occurs after all selections and is never used for score design or policy selection.  The controller's validation history is stage-indexed, recording stage-wise validation metrics rather than producing a $4 \times 4$ matrix. Rows index the training stage and columns index the evaluation block.
+We use API-Bank, a dataset of tool-augmented dialogues, and construct four sequential blocks $D_1,\ldots,D_4$ by grouping examples by API family. The blocks are disjoint in their assigned examples. Within each block, API families are deterministically assigned to fit, controller-validation, or final-test roles. Fit uses only original training examples; validation and test use only original held-out examples, and no API family appears in more than one role. The protocol defines canonical, reverse, and one-block-rotated stream orders; the run reported in this paper completed the canonical order only. At each stage the controller trains candidates on fit families and observes validation metrics only. Final test-family evaluation occurs after all selections and is never used for score design or policy selection.  The controller's validation history is stage-indexed, recording stage-wise validation metrics rather than producing a $4 \times 4$ matrix. Rows index the training stage and columns index the evaluation block.
 
 The primary generation task is next-API-call prediction. We score examples whose expected output contains a parseable API call. The full held-out evaluation contains 126, 104, 103, and 107 scored examples in $D_1$ through $D_4$, respectively. The training notebook also reports a sampled evaluation of 32 examples per block at each stage; we report it separately because it is useful for continual-learning metrics but has higher sampling noise.
 
@@ -103,6 +105,7 @@ For each generated call, we parse the API name and single-quoted parameter assig
 For the sampled continual-learning matrix, we also calculate final average accuracy (AA), backward transfer (BWT), forward transfer (FWT), average forgetting, and area under the learning curve (AULC). These metrics are descriptive for this one seed; they are not accompanied by uncertainty estimates.
 
 \section{Results}
+\label{sec:pilot}
 
 \subsection{Full held-out generation}
 
@@ -150,6 +153,7 @@ The forgetting metrics point in the opposite direction. BWT is $-13.5\%$ for B a
 \end{figure}
 
 \subsection{Failure modes}
+\label{sec:failuremodes}
 
 The aggregate gain is driven partly by tool selection. Across all final-stage scored examples, A produces 102 wrong-API errors and B produces 12. B also reduces correct-API/wrong-parameter errors from 47 to 22. However, B produces 101 malformed or no-call outputs versus 45 for A. This means a supervisor using only exact-call accuracy could miss a reliability regression in output formatting or call emission.
 
@@ -172,20 +176,104 @@ Malformed or no call & 45 & 101 \\
 
 For a meta-agent, this decomposition is operationally important. A controller that optimizes only exact-match reward could prefer a policy that selects the right tool more often but emits more invalid actions. Any automatic optimizer should therefore use multiple constraints or reward terms, including parse validity, semantic argument correctness, and task completion.
 
+\section{Controller Results}
+
+We report one completed controller run: seed 42, \texttt{meta-llama/Llama-3.1-8B-Instruct}, token-matched candidate training, canonical stream order. The run comprises 12 QLoRA trainings (eight for controller fitting, four for the frozen-schedule replay) and 1.95 GPU-hours. The recorded split assigns 115 API families to fit, 32 to controller validation, and 37 to final test, with no family in more than one role.
+
+\subsection{The selection loop is degenerate}
+
+Table~\ref{tab:decisions} gives every controller decision. The trajectory policy B wins at all four stages, by margins of 0.078 to 0.135 on a score whose observed range across candidates is roughly 0.37 to 0.61. The controller therefore never switches, and on this stream it is behaviorally indistinguishable from a fixed B policy.
+
+\begin{table}[t]
+\centering
+\caption{Controller decisions on the canonical order. $S$ is the frozen reliability-aware score, computed on controller-validation families only. The controller selected B at every stage.}
+\label{tab:decisions}
+\begin{tabular}{llrrrl}
+\toprule
+Stage & Block & $S(A)$ & $S(B)$ & Margin & Selected \\
+\midrule
+1 & $D_1$ & 0.491 & 0.605 & 0.114 & B \\
+2 & $D_2$ & 0.463 & 0.586 & 0.123 & B \\
+3 & $D_3$ & 0.375 & 0.510 & 0.135 & B \\
+4 & $D_4$ & 0.379 & 0.457 & 0.078 & B \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+We report this as the run's main empirical outcome rather than presenting the mechanism as adaptive. Two readings are consistent with the evidence and this experiment does not separate them. Either one policy genuinely dominates the other across the whole stream, in which case the selection machinery is unnecessary overhead and a practitioner should simply fix the policy and spend the compute elsewhere; or the margins are large enough to mask stage-level variation that a more sensitive score, more validation examples, or a wider candidate set would expose. The decision margins are the quantity a practitioner needs in order to tell these apart, which is why we report them rather than only the selected schedule. Both candidate scores also decline monotonically across stages, from 0.605 to 0.457 for B, which is consistent with accumulating interference over the stream.
+
+\subsection{Held-out family evaluation}
+
+Table~\ref{tab:controllerfinal} reports the selected worker on final-test families, which are disjoint from every family used for fitting or for controller validation. These numbers are not comparable to the fixed-policy pilot in Section~\ref{sec:pilot}: the pilot is scored on the full held-out split of each block, whereas the controller is scored only on the held-out test families, a smaller and family-disjoint set of 118 examples.
+
+\begin{table}[t]
+\centering
+\caption{Selected worker on held-out test families, canonical order, evaluated under condition B. Values are percentages; $n$ is the number of scored examples.}
+\label{tab:controllerfinal}
+\begin{tabular}{lrrrrrr}
+\toprule
+Block & $n$ & Exact full call & API name & Valid & Malformed & Wrong API \\
+\midrule
+$D_1$ & 23 & 39.1 & 78.3 & 78.3 & 21.7 & 0.0 \\
+$D_2$ & 28 & 46.4 & 82.1 & 92.9 & 7.1 & 10.7 \\
+$D_3$ & 30 & 33.3 & 60.0 & 73.3 & 26.7 & 13.3 \\
+$D_4$ & 37 & 54.1 & 83.8 & 86.5 & 13.5 & 2.7 \\
+\midrule
+Mean & & 43.2 & 76.0 & 82.7 & 17.3 & 6.7 \\
+Pooled & 118 & 44.1 & 76.3 & 83.1 & 16.9 & 6.8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Pooling the 118 scored examples, the mutually exclusive outcome categories are 52 exact full calls, 38 correct-API calls with wrong parameters, 8 wrong-API calls, and 20 malformed or absent calls. Argument construction, not tool choice, is the dominant remaining error: the selected worker names the right API in 76.3\% of cases but gets the complete call right in 44.1\%.
+
+\subsection{The controller reproduces the failure-mode tradeoff}
+
+The controller's validation traces are an independent replication of the diagnostic in Section~\ref{sec:failuremodes}, now under token-matched training and with families disjoint from the test set. Table~\ref{tab:valtradeoff} shows the exchange at every stage: A is almost perfectly well-formed, emitting an unparseable call at most 3.5\% of the time, but selects the wrong API in 33 to 48\% of cases. B reduces wrong-API errors to between 2 and 7\% and pays for it with malformed or absent calls between 11 and 23\%.
+
+\begin{table}[t]
+\centering
+\caption{Controller-validation aggregates by stage. A is reliably well-formed but frequently selects the wrong tool; B reverses the pattern. Values are percentages.}
+\label{tab:valtradeoff}
+\begin{tabular}{lrrrrrr}
+\toprule
+& \multicolumn{2}{c}{Exact full call} & \multicolumn{2}{c}{Malformed/no call} & \multicolumn{2}{c}{Wrong API} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Stage & A & B & A & B & A & B \\
+\midrule
+1 & 36.4 & 63.6 & 0.0 & 22.7 & 36.4 & 4.5 \\
+2 & 28.8 & 48.5 & 0.0 & 11.4 & 32.6 & 2.3 \\
+3 & 19.3 & 36.2 & 2.1 & 13.8 & 45.1 & 3.6 \\
+4 & 23.2 & 33.7 & 3.5 & 21.1 & 48.3 & 6.5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This is the substantive result that survives the degenerate schedule. The two policies do not differ by a single quality scalar; they fail in different places. A meta-agent that reads only aggregate exact match would record B as uniformly better and would not observe that it has traded tool-selection errors for output-validity errors. Which exchange is acceptable is a deployment question: a system that can retry a malformed call cheaply, but whose wrong API calls have side effects, should prefer B, and a system facing the opposite cost structure should not.
+
 \section{Implications for Meta-Agent Systems}
 
 The implemented experiment instantiates a narrow meta-agent: a controller that trains, evaluates, and selects a worker adapter. At each stage it compares A and B from the same parent adapter, observes validation metrics, and selects the candidate carried to the next stage. Its final evaluation is restricted to API families held out from both fitting and controller validation.
 
-The controller tests whether validation-based selection generalizes across stream orders. It uses a frozen score containing exact-call accuracy, API-name accuracy, valid-call rate, malformed/no-call rate, and wrong-API rate. The saved history exposes each candidate score and selected policy, making the decision auditable without exposing final-test metrics.
+It uses a frozen score containing exact-call accuracy, API-name accuracy, valid-call rate, malformed/no-call rate, and wrong-API rate. The saved history exposes each candidate score and selected policy, making the decision auditable without exposing final-test metrics. In this run that audit trail is what carries the finding: the schedule alone would show only that B was chosen four times, while the margins show how far from a switch the controller ever came.
 
 The fixed-policy pilot suggests that a useful controller objective should not be a single exact-call metric. The trajectory condition's reduction in wrong-tool errors is valuable, but its malformed/no-call increase is a warning that optimizing one observable metric can move failures elsewhere. The controller therefore uses a frozen multi-metric score.
 
-The implemented controller experiment adds this selection loop under equal candidate token budgets. It evaluates the selected worker only on held-out API families under canonical, reverse, and rotated stream orders; controller decisions use validation families only. The fixed-policy pilot is reported as observed evidence; controller outcomes are a separate experiment and must be added only after the GPU run, together with its split manifest and decision history.
+Our run suggests a practical discipline for such systems. A selection loop should be instrumented to report how often it actually switches and by what margin, because a loop that never switches is a fixed policy wearing the costume of an adaptive one, at double the training cost. Here candidate training consumed eight QLoRA runs to produce a schedule that four runs of fixed B would have reproduced exactly. That is not an argument against selection, but it is an argument for reporting selection rate and decision margin as first-class results, and for treating a degenerate schedule as a signal to widen the candidate set or sharpen the score rather than as a successful adaptation.
 
 \section{Limitations}
 
+\paragraph{Incomplete stream-order evaluation.}
+The protocol specifies canonical, reverse, and one-block-rotated stream orders, but only the canonical order was completed. The paper therefore contains no evidence about whether the selected schedule transfers to a different block ordering, and the stream-order component of our research question is unanswered. Because the schedule is a constant policy, replaying it under another order is equivalent to training fixed B under that order; we expect this to be informative about robustness but we have not measured it.
+
+\paragraph{Degenerate schedule.}
+The controller made four decisions and they were identical, so this run provides no evidence that the selection mechanism can adapt, only that it prefers B consistently and by a clear margin. A two-candidate space is also small: with only A and B available, a single dominant policy makes degeneracy likely a priori.
+
+\paragraph{Validation sample sizes.}
+Controller decisions rest on 22, 28, 44, and 70 scored validation examples at stages 1 through 4. Block $D_2$ contributes only 6 scored examples through its 3 validation families. Stage-level decisions are correspondingly noisy, and a margin of 0.078 at stage 4 should not be read as a precise quantity.
+
 \paragraph{Token budget and seed.}
-B receives 25.1\% more training tokens, and the reported run uses only seed 42. The observed advantage may therefore reflect token quantity, trajectory content, or their interaction. No confidence intervals or significance tests are reported.
+Candidate training in the controller run is token-matched, but the fixed-policy pilot is not: there B receives 25.1\% more training tokens. The pilot's advantage may therefore reflect token quantity, trajectory content, or their interaction. Both the pilot and the controller run use only seed 42, and no confidence intervals or significance tests are reported for either.
 
 \paragraph{Task and data scope.}
 API-Bank is compact and structured, which supports controlled iteration but limits external validity. Four blocks are a short continual-learning stream. The task is next-call prediction rather than complete end-to-end task success.
@@ -202,9 +290,11 @@ Tool-use post-training can increase an agent's ability to select and invoke exte
 
 \section{Conclusion}
 
-We introduced a narrow meta-controller that selects between stripped-context and trajectory-context training for a continually adapting tool-use worker. It trains both candidates at each stage, selects using a frozen reliability-aware score on controller-validation API families, and evaluates only after training on final-test families and held-out stream orders. The fixed-policy seed-42 pilot motivates the design: trajectory context reduced wrong-API errors but increased malformed/no-call outputs and used more tokens.
+We introduced a narrow meta-controller that selects between stripped-context and trajectory-context training for a continually adapting tool-use worker, and reported one completed seed-42 run on the canonical stream order. The controller selected the trajectory policy at all four stages, so the selection loop was degenerate and reduced to a fixed policy at twice the training cost. On held-out API families the selected worker reached 43.2\% exact full-call accuracy with a 17.3\% malformed rate.
 
-The claim remains component-level. The controller does not establish open-ended self-improvement, and controller results should be reported only with the split manifest, token accounting, and all stream-order outcomes. Multiple seeds, larger streams, semantic task scoring, and comparisons against learned or human-designed controller baselines remain necessary to establish robust selection generalization.
+The result we would emphasize is not the accuracy but the decomposition. Under token-matched training and disjoint family partitions, the controller's own validation traces reproduce the pilot's finding that the two policies fail in different places: stripped context yields well-formed calls to the wrong tool, trajectory context yields the right tool with a higher rate of unparseable output. A meta-agent scoring only aggregate exact match cannot see that exchange, and would silently accept a reliability regression as an improvement.
+
+The claim remains component-level. This run does not establish open-ended self-improvement, nor selection generalization: the reverse and rotated stream orders were not completed, the candidate set holds two human-designed policies, and everything rests on a single seed. Multiple seeds, the remaining stream orders, larger candidate sets, semantic argument scoring, and comparisons against learned or human-designed controller baselines are all needed before selection-based post-training can be claimed to work.
 
 \small
 \begin{thebibliography}{9}
@@ -249,6 +339,8 @@ Xiao Wang et al.
 \appendix
 \section{Reproducibility Details}
 
-The repository contains the numbered notebooks used for data preparation, training/evaluation, analysis, full generation evaluation, and the meta-controller experiment. The canonical pilot uses seed 42 and saves result JSON files for both fixed conditions. \texttt{final/05\_meta\_controller.ipynb} creates disjoint fit, controller-validation, and final-test API-family partitions, trains both candidates after each stage, selects from validation metrics only, and evaluates the selected worker on canonical, reverse, and rotated stream orders. The split manifest and controller history are saved under \texttt{meta\_controller\_seed42/}. A smoke test checks that condition A strips trajectory lines and condition B preserves them in both training and evaluation formats. Large adapter bundles and full-evaluation outputs are stored outside git; the repository includes manifests and partial metadata for verification. The reported hardware and run records are documented in the accompanying run ledger.
+The repository contains the numbered notebooks used for data preparation, training/evaluation, analysis, full generation evaluation, and the meta-controller experiment. The canonical pilot uses seed 42 and saves result JSON files for both fixed conditions. \texttt{final/05\_meta\_controller.ipynb} creates disjoint fit, controller-validation, and final-test API-family partitions, trains both candidates after each stage, selects from validation metrics only, and evaluates the selected worker on held-out test families. A smoke test checks that condition A strips trajectory lines and condition B preserves them in both training and evaluation formats.
+
+The controller run reported here is recorded under \texttt{meta\_controller\_seed42/}. It contains the split manifest, per-stage decision records with both candidate scores and their full validation metrics, and the final test-family metrics for the canonical order. The manifest confirms 115 fit, 32 controller-validation, and 37 final-test API families with no family in more than one role, and every run record carries \texttt{test\_used\_for\_selection: false}. The run used \texttt{meta-llama/Llama-3.1-8B-Instruct} with the QLoRA configuration of Section~\ref{sec:setup}, took 1.95 GPU-hours over 12 training runs, and was executed with \texttt{transformers} pinned to 4.57.6 to match the library line used for the pilot. The reverse and rotated stream orders specified by the protocol were not completed and no partial results for them are reported. Large adapter bundles and full-evaluation outputs are stored outside git; the repository includes manifests and partial metadata for verification. The reported hardware and run records are documented in the accompanying run ledger.
 
 \end{document}

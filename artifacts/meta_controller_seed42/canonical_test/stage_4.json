@@ -1,0 +1,9 @@
+{
+  "stage": 4,
+  "block_id": 4,
+  "policy": "B",
+  "validation_used": false,
+  "test_used": false,
+  "train_loss": 0.11557868371407191,
+  "adapter_path": "adapters/canonical_test/candidate_D4_B"
+}

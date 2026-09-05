@@ -48,18 +48,21 @@ anonymous; do not uncomment it before the camera-ready stage.
 - Add all authors to the OpenReview submission form and verify their profiles.
 - Select the Full Paper track.
 
-## Known gap in the evidence
+## Results status
 
-`final/05_meta_controller.ipynb` has never been executed: it contains no cell
-outputs, and no `meta_controller_seed42/` directory exists in the repository. The
-notebook now runs standalone on Colab (set the runtime to A100, add an `HF_TOKEN`
-Colab secret, and do a `SMOKE_TEST = True` dry run first), and checkpoints every
-stage so a disconnect does not lose the run. The manuscript therefore reports the
-controller as a protocol and design contribution and states explicitly that its
-results are not yet available. The only empirical
-results in the paper are the fixed-policy seed-42 pilot, which is single-seed and
-token-confounded. Run the notebook from a GPU runtime, verify the split manifest,
-and add controller metrics before making any claim that the selection loop works.
+The controller run is in `artifacts/meta_controller_seed42/` and the paper reports it.
+Two things about it constrain what the paper can claim, and both are stated in the text:
+
+- **The selection loop was degenerate.** The controller chose policy B at all four
+  stages (margins 0.078-0.135), so on this stream it is behaviourally a fixed-B policy.
+  The paper reports this as the run's primary empirical finding rather than framing the
+  mechanism as adaptive.
+- **Only the canonical stream order completed.** `reverse_heldout` and `rotate_heldout`
+  were not run. The paper draws no stream-order conclusions and lists this under
+  Limitations. Running them takes roughly 1.5 GPU-hours; the notebook resumes from the
+  completed canonical run, so only the two missing orders would be trained.
+
+Every figure in the paper was checked against the JSON in `artifacts/`.
 
 ## Evidence covered
 

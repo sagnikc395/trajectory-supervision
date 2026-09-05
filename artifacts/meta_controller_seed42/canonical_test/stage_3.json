@@ -1,0 +1,9 @@
+{
+  "stage": 3,
+  "block_id": 3,
+  "policy": "B",
+  "validation_used": false,
+  "test_used": false,
+  "train_loss": 0.12203706487228996,
+  "adapter_path": "adapters/canonical_test/candidate_D3_B"
+}

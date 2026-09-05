@@ -68,3 +68,23 @@ Only the small `after_D*.json` files are mirrored into git under:
 artifacts/partial/checkpoints_A_seed42/
 artifacts/partial/checkpoints_B_seed42/
 ```
+
+## Meta-Controller Run (seed 42)
+
+Produced by `final/05_meta_controller.ipynb`, section 7. Unlike the checkpoint
+bundles above, these are small JSON records and are committed directly under
+`artifacts/meta_controller_seed42/`.
+
+| File | Approx size | SHA-256 |
+|---|---:|---|
+| `meta_controller_seed42_results.zip` | 40 KB | `6f8db2392ca57e61a4c8f9619bf232a525991ab01c4a956c84fa328e1ba0c4d0` |
+
+Run record: `meta-llama/Llama-3.1-8B-Instruct`, transformers 4.57.6, token-matched
+candidate training, 12 QLoRA trainings, 1.95 GPU-hours. Split manifest holds 115 fit,
+32 controller-validation and 37 final-test API families with no family in more than
+one role; every run record carries `test_used_for_selection: false`.
+
+**Incomplete.** Only the canonical stream order finished. `reverse_heldout` and
+`rotate_heldout` were not run, so `results_all_orders.json` is absent and
+`controller_summary.json` carries `run_complete: false`. The submitted paper reports
+the canonical order only and states this explicitly.
