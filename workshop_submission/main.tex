@@ -59,13 +59,19 @@ The study is deliberately component-level. We do not claim to introduce a comple
 \section{Related Work}
 
 \paragraph{Tool-use agents and trajectories.}
-Toolformer showed that language models can learn when and how to call external tools \citep{schick2023toolformer}. API-Bank provides structured dialogues containing API requests, responses, and assistant actions \citep{li2023apibank}; ToolLLM and ToolBench scale tool-use supervision to substantially larger API collections \citep{qin2023toolllm}. Our setting uses API-Bank because its compact size permits repeated sequential fine-tuning and complete generation evaluation.
+Toolformer showed that language models can learn when and how to call external tools \citep{schick2023toolformer}, and ReAct established the interleaved reason-act-observe loop that produces the action--observation traces we study \citep{yao2023react}. API-Bank provides structured dialogues containing API requests, responses, and assistant actions \citep{li2023apibank}; ToolLLM and Gorilla scale tool-use supervision to substantially larger API collections \citep{qin2023toolllm,patil2023gorilla}. Broader agent benchmarks evaluate multi-turn task completion rather than single-call correctness \citep{liu2023agentbench,yao2024taubench}. Our setting uses API-Bank because its compact size permits repeated sequential fine-tuning and complete generation evaluation; the cost is that we score next-call prediction rather than end-to-end task success.
+
+\paragraph{Meta-agents and automated optimization of agents.}
+A growing body of work has one system improve another. Reflexion and Self-Refine feed a critique of an agent's output back into the same agent at inference time \citep{shinn2023reflexion,madaan2023selfrefine}, while STaR bootstraps training data from a model's own successful attempts \citep{zelikman2022star}. A second line optimizes the artifacts around a model rather than its weights: OPRO uses a language model as the optimizer of its own prompts \citep{yang2023opro}, DSPy compiles declarative pipelines and tunes their modules \citep{khattab2023dspy}, and TextGrad propagates textual feedback through a computation graph \citep{yuksekgonul2024textgrad}. Closest to our framing, ADAS searches over agent designs themselves \citep{hu2024adas}, and AutoGen provides the multi-agent substrate such systems are typically built on \citep{wu2023autogen}. Our controller is far narrower than any of these: it optimizes neither prompts nor architecture but the training context supplied to a worker, over a two-element candidate set, and it makes its decisions from held-out validation metrics rather than from model self-assessment.
 
 \paragraph{Process and outcome supervision.}
-Process supervision can outperform final-answer supervision in mathematical reasoning \citep{lightman2023verify}. API trajectories are a narrower signal: they record observable interaction events rather than internal reasoning steps or human labels. We therefore use the term trajectory context and avoid treating API traces as faithful representations of thought.
+Process supervision can outperform final-answer supervision in mathematical reasoning \citep{lightman2023verify,uesato2022process}, and later work reduces its labeling cost by inferring step-level rewards automatically \citep{wang2023shepherd}. API trajectories are a narrower signal: they record observable interaction events rather than internal reasoning steps or human labels. We therefore use the term trajectory context and avoid treating API traces as faithful representations of thought. The reliability of automatic scoring is itself contested \citep{zheng2023judging}, which is part of why our controller scores decomposed, parser-level outcomes rather than a single learned judgment.
 
-\paragraph{Continual learning and meta-level optimization.}
-Sequential fine-tuning can degrade earlier capabilities, motivating evaluation protocols that measure adaptation and forgetting \citep{wang2023trace}. Our evaluation matrix follows this perspective. Efficient adaptation methods such as LoRA and QLoRA make it practical to train multiple worker-agent variants \citep{hu2021lora,dettmers2023qlora}. A controller that trains and compares these variants is a concrete instance of the post-training meta-agent studied here.
+\paragraph{Continual learning.}
+Sequential fine-tuning degrades earlier capabilities, a failure documented long before language models \citep{kirkpatrick2017overcoming,lopezpaz2017gem} and confirmed for large-scale instruction tuning \citep{luo2023empirical}. This motivates evaluation protocols that measure adaptation and forgetting jointly \citep{wang2023trace}, which our evaluation matrix follows, and mitigation methods that constrain where adaptation happens \citep{wang2023olora}. Efficient adaptation methods such as LoRA and QLoRA make it practical to train multiple worker-agent variants \citep{hu2021lora,dettmers2023qlora}.
+
+\paragraph{Selecting between candidates under a noisy signal.}
+Choosing among partially trained candidates on limited validation evidence is a well-studied problem outside the agent literature. Hyperband allocates budget to candidates by successive elimination \citep{li2018hyperband}, and population-based training interleaves selection with continued training in a way structurally similar to our stage-wise loop \citep{jaderberg2017pbt}. Both treat the number of validation samples backing a decision as a first-class quantity. Our controller is a deliberately simple instance of this family, and Section~\ref{sec:limitations} reports the validation sample sizes its decisions actually rest on.
 
 \section{Worker-Agent Setup}
 \label{sec:setup}
@@ -262,6 +268,7 @@ The fixed-policy pilot suggests that a useful controller objective should not be
 We therefore report the selection rate and the per-stage decision margins alongside the selected schedule, since the schedule alone records only that B was chosen four times.
 
 \section{Limitations}
+\label{sec:limitations}
 
 \paragraph{Incomplete stream-order evaluation.}
 The protocol specifies canonical, reverse, and one-block-rotated stream orders, but only the canonical order was completed. The paper therefore contains no evidence about whether the selected schedule transfers to a different block ordering, and the stream-order component of our research question is unanswered.
@@ -297,30 +304,80 @@ Under token-matched training and disjoint family partitions, the controller's va
 The claim remains component-level. This run does not establish open-ended self-improvement, nor selection generalization: the reverse and rotated stream orders were not completed, the candidate set holds two human-designed policies, and everything rests on a single seed. Multiple seeds, the remaining stream orders, larger candidate sets, semantic argument scoring, and comparisons against learned or human-designed controller baselines are all needed before selection-based post-training can be claimed to work.
 
 \small
-\begin{thebibliography}{9}
+\begin{thebibliography}{99}
 
 \bibitem[Dettmers et al.(2023)]{dettmers2023qlora}
 Tim Dettmers, Artidoro Pagnoni, Ari Holtzman, and Luke Zettlemoyer.
 \newblock QLoRA: Efficient finetuning of quantized LLMs.
 \newblock \emph{NeurIPS}, 2023.
 
-\bibitem[Hu et al.(2021)]{hu2021lora}
+\bibitem[Hu et al.(2022)]{hu2021lora}
 Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen.
 \newblock LoRA: Low-rank adaptation of large language models.
 \newblock \emph{ICLR}, 2022.
 
+\bibitem[Hu et al.(2024)]{hu2024adas}
+Shengran Hu, Cong Lu, and Jeff Clune.
+\newblock Automated design of agentic systems.
+\newblock \emph{arXiv:2408.08435}, 2024.
+
+\bibitem[Jaderberg et al.(2017)]{jaderberg2017pbt}
+Max Jaderberg, Valentin Dalibard, Simon Osindero, Wojciech M. Czarnecki, Jeff Donahue, Ali Razavi, Oriol Vinyals, Tim Green, Iain Dunning, Karen Simonyan, Chrisantha Fernando, and Koray Kavukcuoglu.
+\newblock Population based training of neural networks.
+\newblock \emph{arXiv:1711.09846}, 2017.
+
+\bibitem[Khattab et al.(2023)]{khattab2023dspy}
+Omar Khattab, Arnav Singhvi, Paridhi Maheshwari, Zhiyuan Zhang, Keshav Santhanam, Sri Vardhamanan, Saiful Haq, Ashutosh Sharma, Thomas T. Joshi, Hanna Moazam, Heather Miller, Matei Zaharia, and Christopher Potts.
+\newblock DSPy: Compiling declarative language model calls into self-improving pipelines.
+\newblock \emph{arXiv:2310.03714}, 2023.
+
+\bibitem[Kirkpatrick et al.(2017)]{kirkpatrick2017overcoming}
+James Kirkpatrick, Razvan Pascanu, Neil Rabinowitz, Joel Veness, Guillaume Desjardins, Andrei A. Rusu, Kieran Milan, John Quan, Tiago Ramalho, Agnieszka Grabska-Barwinska, Demis Hassabis, Claudia Clopath, Dharshan Kumaran, and Raia Hadsell.
+\newblock Overcoming catastrophic forgetting in neural networks.
+\newblock \emph{PNAS}, 114(13):3521--3526, 2017.
+
+\bibitem[Li et al.(2018)]{li2018hyperband}
+Lisha Li, Kevin Jamieson, Giulia DeSalvo, Afshin Rostamizadeh, and Ameet Talwalkar.
+\newblock Hyperband: A novel bandit-based approach to hyperparameter optimization.
+\newblock \emph{JMLR}, 18(185):1--52, 2018.
+
 \bibitem[Li et al.(2023)]{li2023apibank}
 Minghao Li, Yingxiu Zhao, Bowen Yu, Feifan Song, Hangyu Li, Haiyang Yu, Zhoujun Li, Fei Huang, and Yongbin Li.
 \newblock API-Bank: A comprehensive benchmark for tool-augmented LLMs.
-\newblock \emph{arXiv:2304.08244}, 2023.
+\newblock \emph{EMNLP}, 2023.
 
 \bibitem[Lightman et al.(2023)]{lightman2023verify}
-Hunter Lightman et al.
+Hunter Lightman, Vineet Kosaraju, Yura Burda, Harri Edwards, Bowen Baker, Teddy Lee, Jan Leike, John Schulman, Ilya Sutskever, and Karl Cobbe.
 \newblock Let's verify step by step.
 \newblock \emph{arXiv:2305.20050}, 2023.
 
+\bibitem[Liu et al.(2023)]{liu2023agentbench}
+Xiao Liu, Hao Yu, Hanchen Zhang, Yifan Xu, Xuanyu Lei, Hanyu Lai, Yu Gu, Hangliang Ding, Kaiwen Men, Kejuan Yang, Shudan Zhang, Xiang Deng, Aohan Zeng, Zhengxiao Du, Chenhui Zhang, Sheng Shen, Tianjun Zhang, Yu Su, Huan Sun, Minlie Huang, Yuxiao Dong, and Jie Tang.
+\newblock AgentBench: Evaluating LLMs as agents.
+\newblock \emph{arXiv:2308.03688}, 2023.
+
+\bibitem[Lopez-Paz and Ranzato(2017)]{lopezpaz2017gem}
+David Lopez-Paz and Marc'Aurelio Ranzato.
+\newblock Gradient episodic memory for continual learning.
+\newblock \emph{NeurIPS}, 2017.
+
+\bibitem[Luo et al.(2023)]{luo2023empirical}
+Yun Luo, Zhen Yang, Fandong Meng, Yafu Li, Jie Zhou, and Yue Zhang.
+\newblock An empirical study of catastrophic forgetting in large language models during continual fine-tuning.
+\newblock \emph{arXiv:2308.08747}, 2023.
+
+\bibitem[Madaan et al.(2023)]{madaan2023selfrefine}
+Aman Madaan, Niket Tandon, Prakhar Gupta, Skyler Hallinan, Luyu Gao, Sarah Wiegreffe, Uri Alon, Nouha Dziri, Shrimai Prabhumoye, Yiming Yang, Shashank Gupta, Bodhisattwa Prasad Majumder, Katherine Hermann, Sean Welleck, Amir Yazdanbakhsh, and Peter Clark.
+\newblock Self-Refine: Iterative refinement with self-feedback.
+\newblock \emph{NeurIPS}, 2023.
+
+\bibitem[Patil et al.(2023)]{patil2023gorilla}
+Shishir G. Patil, Tianjun Zhang, Xin Wang, and Joseph E. Gonzalez.
+\newblock Gorilla: Large language model connected with massive APIs.
+\newblock \emph{arXiv:2305.15334}, 2023.
+
 \bibitem[Qin et al.(2023)]{qin2023toolllm}
-Yujia Qin et al.
+Yujia Qin, Shihao Liang, Yining Ye, Kunlun Zhu, Lan Yan, Yaxi Lu, Yankai Lin, Xin Cong, Xiangru Tang, Bill Qian, Sihan Zhao, Lauren Hong, Runchu Tian, Ruobing Xie, Jie Zhou, Mark Gerstein, Dahai Li, Zhiyuan Liu, and Maosong Sun.
 \newblock ToolLLM: Facilitating large language models to master 16000+ real-world APIs.
 \newblock \emph{arXiv:2307.16789}, 2023.
 
@@ -329,10 +386,65 @@ Timo Schick, Jane Dwivedi-Yu, Roberto Dessi, Roberta Raileanu, Maria Lomeli, Luk
 \newblock Toolformer: Language models can teach themselves to use tools.
 \newblock \emph{NeurIPS}, 2023.
 
-\bibitem[Wang et al.(2023)]{wang2023trace}
-Xiao Wang et al.
+\bibitem[Shinn et al.(2023)]{shinn2023reflexion}
+Noah Shinn, Federico Cassano, Edward Berman, Ashwin Gopinath, Karthik Narasimhan, and Shunyu Yao.
+\newblock Reflexion: Language agents with verbal reinforcement learning.
+\newblock \emph{NeurIPS}, 2023.
+
+\bibitem[Uesato et al.(2022)]{uesato2022process}
+Jonathan Uesato, Nate Kushman, Ramana Kumar, Francis Song, Noah Siegel, Lisa Wang, Antonia Creswell, Geoffrey Irving, and Irina Higgins.
+\newblock Solving math word problems with process- and outcome-based feedback.
+\newblock \emph{arXiv:2211.14275}, 2022.
+
+\bibitem[Wang et al.(2023a)]{wang2023trace}
+Xiao Wang, Yuansen Zhang, Tianze Chen, Songyang Gao, Senjie Jin, Xianjun Yang, Zhiheng Xi, Rui Zheng, Yicheng Zou, Tao Gui, Qi Zhang, and Xuanjing Huang.
 \newblock TRACE: A comprehensive benchmark for continual learning in large language models.
 \newblock \emph{arXiv:2310.06762}, 2023.
+
+\bibitem[Wang et al.(2023b)]{wang2023olora}
+Xiao Wang, Tianze Chen, Qiming Ge, Han Xia, Rong Bao, Rui Zheng, Qi Zhang, Tao Gui, and Xuanjing Huang.
+\newblock Orthogonal subspace learning for language model continual learning.
+\newblock \emph{EMNLP Findings}, 2023.
+
+\bibitem[Wang et al.(2023c)]{wang2023shepherd}
+Peiyi Wang, Lei Li, Zhihong Shao, R. X. Xu, Damai Dai, Yifei Li, Deli Chen, Y. Wu, and Zhifang Sui.
+\newblock Math-Shepherd: Verify and reinforce LLMs step-by-step without human annotations.
+\newblock \emph{arXiv:2312.08935}, 2023.
+
+\bibitem[Wu et al.(2023)]{wu2023autogen}
+Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Beibin Li, Erkang Zhu, Li Jiang, Xiaoyun Zhang, Shaokun Zhang, Jiale Liu, Ahmed Hassan Awadallah, Ryen W. White, Doug Burger, and Chi Wang.
+\newblock AutoGen: Enabling next-gen LLM applications via multi-agent conversation.
+\newblock \emph{arXiv:2308.08155}, 2023.
+
+\bibitem[Yang et al.(2023)]{yang2023opro}
+Chengrun Yang, Xuezhi Wang, Yifeng Lu, Hanxiao Liu, Quoc V. Le, Denny Zhou, and Xinyun Chen.
+\newblock Large language models as optimizers.
+\newblock \emph{arXiv:2309.03409}, 2023.
+
+\bibitem[Yao et al.(2023)]{yao2023react}
+Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao.
+\newblock ReAct: Synergizing reasoning and acting in language models.
+\newblock \emph{ICLR}, 2023.
+
+\bibitem[Yao et al.(2024)]{yao2024taubench}
+Shunyu Yao, Noah Shinn, Pedram Razavi, and Karthik Narasimhan.
+\newblock $\tau$-bench: A benchmark for tool-agent-user interaction in real-world domains.
+\newblock \emph{arXiv:2406.12045}, 2024.
+
+\bibitem[Yuksekgonul et al.(2024)]{yuksekgonul2024textgrad}
+Mert Yuksekgonul, Federico Bianchi, Joseph Boen, Sheng Liu, Zhi Huang, Carlos Guestrin, and James Zou.
+\newblock TextGrad: Automatic ``differentiation'' via text.
+\newblock \emph{arXiv:2406.07496}, 2024.
+
+\bibitem[Zelikman et al.(2022)]{zelikman2022star}
+Eric Zelikman, Yuhuai Wu, Jesse Mu, and Noah D. Goodman.
+\newblock STaR: Bootstrapping reasoning with reasoning.
+\newblock \emph{NeurIPS}, 2022.
+
+\bibitem[Zheng et al.(2023)]{zheng2023judging}
+Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Siyuan Zhuang, Zhanghao Wu, Yonghao Zhuang, Zi Lin, Zhuohan Li, Dacheng Li, Eric P. Xing, Hao Zhang, Joseph E. Gonzalez, and Ion Stoica.
+\newblock Judging LLM-as-a-judge with MT-Bench and Chatbot Arena.
+\newblock \emph{NeurIPS Datasets and Benchmarks}, 2023.
 
 \end{thebibliography}
 
