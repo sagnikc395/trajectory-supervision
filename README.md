@@ -24,5 +24,10 @@ The Drive folder includes the seed 42 A/B checkpoint bundles, result JSONs, prep
 - `final/02_train_eval.ipynb`
 - `final/03_analysis.ipynb`
 - `final/04_full_generation_eval.ipynb`
+- `final/05_meta_controller.ipynb` — meta-controller A/B policy-selection experiment.
+  Self-contained: it rebuilds the API-Bank blocks itself, so it can be run on Colab
+  without running `01_data_prep.ipynb` first. Requires a GPU runtime (A100 or better
+  for the full run) and an `HF_TOKEN` Colab secret. Set `SMOKE_TEST = True` for a
+  fast dry run on a free T4 before the real one.
 
 Completed notebook copies and run notes are kept under `runs/`.

@@ -52,8 +52,11 @@ anonymous; do not uncomment it before the camera-ready stage.
 
 `final/05_meta_controller.ipynb` has never been executed: it contains no cell
 outputs, and no `meta_controller_seed42/` directory exists in the repository. The
-manuscript therefore reports the controller as a protocol and design contribution
-and states explicitly that its results are not yet available. The only empirical
+notebook now runs standalone on Colab (set the runtime to A100, add an `HF_TOKEN`
+Colab secret, and do a `SMOKE_TEST = True` dry run first), and checkpoints every
+stage so a disconnect does not lose the run. The manuscript therefore reports the
+controller as a protocol and design contribution and states explicitly that its
+results are not yet available. The only empirical
 results in the paper are the fixed-policy seed-42 pilot, which is single-seed and
 token-confounded. Run the notebook from a GPU runtime, verify the split manifest,
 and add controller metrics before making any claim that the selection loop works.
