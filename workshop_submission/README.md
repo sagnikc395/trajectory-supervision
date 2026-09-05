@@ -6,7 +6,7 @@ Anonymized manuscript source and compiled PDF for the Meta-Agents Workshop
 ## Files
 
 - `main.tex`: anonymous full-paper manuscript.
-- `main.pdf`: compiled seven-page PDF (main text ends on page 6; references and appendix follow).
+- `main.pdf`: compiled ten-page PDF (main text ends on page 8; references and appendix follow).
 - `iclr2027_conference.sty`, `iclr2027_conference.bst`, `natbib.sty`, `fancyhdr.sty`:
   official ICLR 2027 style files, unmodified, from
   <https://media.iclr.cc/Conferences/ICLR2027/iclr-2027-style-files.zip>.
@@ -49,7 +49,7 @@ Audited against <https://meta-agents-workshop.github.io/>. All 16 checks pass.
 | No text outside margins | 0 overfull boxes |
 | Citations and refs resolve | 28 cited = 28 bibitems, no orphans |
 | Every float referenced | 7 tables/figures, all cross-referenced |
-| Abstract single paragraph | 1 paragraph, 168 words |
+| Abstract single paragraph | 1 paragraph, 224 words |
 | Non-archival, not previously published | Course project |
 
 The NeurIPS 2026 style file is distributed only through Overleaf and has no public
