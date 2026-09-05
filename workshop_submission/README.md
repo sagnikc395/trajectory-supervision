@@ -1,12 +1,16 @@
 # Workshop Submission Package
 
-This directory contains the anonymized manuscript source and compiled PDF for the Meta-Agents Workshop.
+Anonymized manuscript source and compiled PDF for the Meta-Agents Workshop
+(NeurIPS 2026 Workshop: Managing Agents that Manage Agents).
 
 ## Files
 
 - `main.tex`: anonymous full-paper manuscript.
-- `main.pdf`: compiled seven-page PDF.
-- `README.md`: submission and verification checklist.
+- `main.pdf`: compiled seven-page PDF (main text ends on page 6; references and appendix follow).
+- `iclr2027_conference.sty`, `iclr2027_conference.bst`, `natbib.sty`, `fancyhdr.sty`:
+  official ICLR 2027 style files, unmodified, from
+  <https://media.iclr.cc/Conferences/ICLR2027/iclr-2027-style-files.zip>.
+- `figures/`: figures referenced by the manuscript, copied locally so this directory compiles standalone.
 - `../final/05_meta_controller.ipynb`: controller-driven A/B policy-selection experiment.
 
 ## Compile
@@ -14,25 +18,51 @@ This directory contains the anonymized manuscript source and compiled PDF for th
 From this directory:
 
 ```bash
-tectonic -X compile --keep-logs main.tex
+tectonic -X compile main.tex
 ```
 
-The source currently uses the repository's local NeurIPS-style file so it can be compiled reproducibly in this checkout. Before uploading to OpenReview, replace that style dependency with the current official NeurIPS 2026 or ICLR 2027 style file specified by the workshop, then compile again and confirm that the anonymous workshop option is preserved.
+## Template
 
-Run the new meta-controller experiment from a GPU runtime after running `final/01_data_prep.ipynb` with the updated raw-entry export. The controller writes `meta_controller_seed42/`, including a disjoint API-family split manifest, per-order validation decisions, selected adapter paths, and final test-family metrics. It uses validation families for all policy decisions and never reads final-test metrics until the end of each stream-order run.
+The workshop permits either the NeurIPS 2026 or the ICLR 2027 LaTeX template. This
+manuscript uses the official ICLR 2027 template. The NeurIPS 2026 style file is
+distributed only through Overleaf and has no public direct download, so the ICLR
+2027 files were used to keep the build reproducible from this checkout.
 
-## Upload checklist
+`\iclrfinalcopy` is left commented out, which is what keeps the submission
+anonymous; do not uncomment it before the camera-ready stage.
 
-- Confirm the workshop deadline in OpenReview: September 5, 2026 AoE.
-- Upload `main.pdf` only after compiling with the current official workshop-compatible style file.
-- Keep the paper double-blind: do not add names, affiliations, emails, acknowledgments, repository links, or identifying supplementary material.
-- Include the responsible-use statement in the submitted manuscript; its absence is grounds for desk rejection according to the workshop page.
-- Add all authors to OpenReview and verify their profiles before submission.
-- Check that the PDF has at most nine pages of main text and that references/appendix are placed after the main text.
-- Run `final/05_meta_controller.ipynb` and include its results only after verifying the split manifest and selected policies.
-- Report the controller as a component-level meta-agent that selects worker training policies; do not claim that it implements unrestricted self-improvement.
-- Keep the pilot A/B result separate from the controller result; the pilot is single-seed and token-confounded, while the controller notebook enables token-matched candidate training.
+## Rule compliance (checked against the workshop call for papers)
+
+- [x] Official permitted template (ICLR 2027).
+- [x] Full-paper track: main text is under the 9-page limit; references and appendix follow the main text.
+- [x] Double-blind: no names, affiliations, emails, acknowledgments, or repository links in the source or the PDF; PDF metadata carries no author field.
+- [x] Responsible-use statement included as Section 7. Its absence is grounds for desk rejection.
+- [x] Single PDF, English, US Letter.
+- [x] Non-archival venue; this work is not published at NeurIPS or a comparable venue.
+
+## Still to be done by a human
+
+- Upload `main.pdf` to OpenReview:
+  <https://openreview.net/group?id=NeurIPS.cc/2026/Workshop/Meta-Agents>
+  Deadline: September 5, 2026 AoE.
+- Add all authors to the OpenReview submission form and verify their profiles.
+- Select the Full Paper track.
+
+## Known gap in the evidence
+
+`final/05_meta_controller.ipynb` has never been executed: it contains no cell
+outputs, and no `meta_controller_seed42/` directory exists in the repository. The
+manuscript therefore reports the controller as a protocol and design contribution
+and states explicitly that its results are not yet available. The only empirical
+results in the paper are the fixed-policy seed-42 pilot, which is single-seed and
+token-confounded. Run the notebook from a GPU runtime, verify the split manifest,
+and add controller metrics before making any claim that the selection loop works.
 
 ## Evidence covered
 
-The manuscript reports the recorded seed-42 A/B runs, full held-out generation results, sampled continual-learning metrics, final error categories, hardware/run limitations, and the repository's reproducibility workflow. The new controller protocol adds disjoint fit/validation/test API-family partitions, token-matched candidate training, adaptive policy selection after every stage, and held-out stream-order evaluation. Controller metrics are not included until the GPU notebook run has completed and its split manifest has been checked. Large adapter bundles remain outside git as documented by the project artifact manifest.
+The manuscript reports the recorded seed-42 A/B runs, full held-out generation results,
+sampled continual-learning metrics, final error categories, hardware/run limitations,
+and the repository's reproducibility workflow. The controller protocol adds disjoint
+fit/validation/test API-family partitions, token-matched candidate training, adaptive
+policy selection after every stage, and held-out stream-order evaluation. Large adapter
+bundles remain outside git as documented by the project artifact manifest.

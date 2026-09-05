@@ -1,10 +1,12 @@
 \documentclass{article}
 
-% The repository contains the local NeurIPS-style file used by the project.
-% Replace this local style file with the workshop's current NeurIPS 2026 or
-% ICLR 2027 style file before uploading to OpenReview.
-\usepackage[dblblindworkshop]{../CS_590NN_690NN_Final_Project_Template/neurips_2025}
-\workshoptitle{Managing Agents that Manage Agents}
+% Official ICLR 2027 style files, as permitted by the Meta-Agents Workshop
+% call for papers ("either the NeurIPS 2026 LaTeX template or the ICLR 2027
+% LaTeX template"). Downloaded from:
+%   https://media.iclr.cc/Conferences/ICLR2027/iclr-2027-style-files.zip
+% \iclrfinalcopy is intentionally left commented out so the submission stays
+% anonymous for double-blind review.
+\usepackage{iclr2027_conference,times}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -19,9 +21,11 @@
 \usepackage{enumitem}
 \usepackage{array}
 
-\title{Selecting Worker-Agent Training Context Under Continual Tool-Use Shift}
+\title{Selecting Worker-Agent Training Context \\ Under Continual Tool-Use Shift}
 
-\author{Anonymous Authors}
+% Authors are omitted for double-blind review. Do not uncomment
+% \iclrfinalcopy above until the camera-ready stage.
+\author{Anonymous authors \\ Paper under double-blind review}
 
 \begin{document}
 
@@ -127,7 +131,7 @@ B & Name + any parameter & 67.5 & 76.9 & 61.2 & 72.0 & 69.4 \\
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.91\linewidth]{../CS_590NN_690NN_Final_Project_Template/figures/full_eval_exact_full_heatmaps_seed42.png}
+\includegraphics[width=0.91\linewidth]{figures/full_eval_exact_full_heatmaps_seed42.png}
 \caption{Full held-out exact full-call accuracy matrices. Rows are training stages and columns are evaluation blocks. The trajectory condition is higher on every final-stage block, while earlier-block performance still changes over the stream.}
 \label{fig:heatmaps}
 \end{figure}
@@ -140,7 +144,7 @@ The forgetting metrics point in the opposite direction. BWT is $-13.5\%$ for B a
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.91\linewidth]{../CS_590NN_690NN_Final_Project_Template/figures/sampled_eval_summary.png}
+\includegraphics[width=0.91\linewidth]{figures/sampled_eval_summary.png}
 \caption{Sampled continual-learning evaluation. B has higher final average accuracy and forward transfer, but both conditions show forgetting and B's sampled retention metrics are more negative.}
 \label{fig:sampled}
 \end{figure}
