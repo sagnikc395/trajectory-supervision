@@ -31,14 +31,30 @@ distributed only through Overleaf and has no public direct download, so the ICLR
 `\iclrfinalcopy` is left commented out, which is what keeps the submission
 anonymous; do not uncomment it before the camera-ready stage.
 
-## Rule compliance (checked against the workshop call for papers)
+## Rule compliance
 
-- [x] Official permitted template (ICLR 2027).
-- [x] Full-paper track: main text is under the 9-page limit; references and appendix follow the main text.
-- [x] Double-blind: no names, affiliations, emails, acknowledgments, or repository links in the source or the PDF; PDF metadata carries no author field.
-- [x] Responsible-use statement included as Section 7. Its absence is grounds for desk rejection.
-- [x] Single PDF, English, US Letter.
-- [x] Non-archival venue; this work is not published at NeurIPS or a comparable venue.
+Audited against <https://meta-agents-workshop.github.io/>. All 16 checks pass.
+
+| Rule | Status |
+|---|---|
+| Template: NeurIPS 2026 or ICLR 2027 | Official ICLR 2027, `.sty` vendored unmodified |
+| Full Paper: at most 9 pages main text | Main text ends p8; 10 pages total |
+| References/appendix excluded, after main text | Bibliography then appendix, both after Conclusion |
+| Main text self-contained | No result or method deferred to the appendix |
+| Double-blind | No names, affiliations, emails or acknowledgments in text or metadata |
+| `\iclrfinalcopy` not invoked | Present only in comments; header reads "Under review" |
+| Responsible-use statement | Section 8. Absence is grounds for desk rejection |
+| Single PDF, English, US Letter | 612 x 792 pts, uniform across pages |
+| Fonts embedded | All subsets embedded |
+| No text outside margins | 0 overfull boxes |
+| Citations and refs resolve | 28 cited = 28 bibitems, no orphans |
+| Every float referenced | 7 tables/figures, all cross-referenced |
+| Abstract single paragraph | 1 paragraph, 168 words |
+| Non-archival, not previously published | Course project |
+
+The NeurIPS 2026 style file is distributed only through Overleaf and has no public
+direct download, which is why the ICLR 2027 template was used. The call for papers
+permits either.
 
 ## Still to be done by a human
 

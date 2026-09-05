@@ -115,7 +115,7 @@ For the sampled continual-learning matrix, we also calculate final average accur
 
 \subsection{Full held-out generation}
 
-Table~\ref{tab:final} reports the final-stage results after training through $D_4$. B improves exact full-call accuracy on every held-out block, with a mean increase of 17.7 percentage points. The gain in API-name accuracy is smaller but consistent in the mean, at 7.7 points. Name-plus-any-parameter accuracy also improves on every block.
+Table~\ref{tab:final} reports the final-stage results after training through $D_4$. B improves exact full-call accuracy on every held-out block, with a mean increase of 17.7 percentage points. The gain in API-name accuracy is smaller but consistent in the mean, at 7.7 points. Name-plus-any-parameter accuracy also improves on every block. Figure~\ref{fig:heatmaps} shows the same comparison as stage-by-block matrices, where the advantage holds at every training stage rather than only at the end of the stream.
 
 \begin{table}[t]
 \centering
@@ -149,7 +149,7 @@ B & Name + any parameter & 67.5 & 76.9 & 61.2 & 72.0 & 69.4 \\
 
 The sampled evaluation gives final AA of 38.3\% for A and 53.9\% for B. B also has higher FWT (33.3\% versus 22.9\%) and higher AULC (57.2\% versus 41.8\%). These results are consistent with faster or stronger adaptation to the stream, although they are measured on a small fixed sample and B receives more tokens.
 
-The forgetting metrics point in the opposite direction. BWT is $-13.5\%$ for B and $-10.4\%$ for A, while average forgetting is 13.5\% for B and 10.4\% for A. Thus, the trajectory condition should not be described as reducing forgetting in this experiment. The more accurate conclusion is that it improves final accuracy and forward transfer while not improving, and possibly worsening, the measured retention tradeoff.
+The forgetting metrics point in the opposite direction. BWT is $-13.5\%$ for B and $-10.4\%$ for A, while average forgetting is 13.5\% for B and 10.4\% for A. Thus, the trajectory condition should not be described as reducing forgetting in this experiment. The more accurate conclusion is that it improves final accuracy and forward transfer while not improving, and possibly worsening, the measured retention tradeoff. Figure~\ref{fig:sampled} summarises both sides of this comparison.
 
 \begin{figure}[t]
 \centering
@@ -161,7 +161,7 @@ The forgetting metrics point in the opposite direction. BWT is $-13.5\%$ for B a
 \subsection{Failure modes}
 \label{sec:failuremodes}
 
-The aggregate gain is driven partly by tool selection. Across all final-stage scored examples, A produces 102 wrong-API errors and B produces 12. B also reduces correct-API/wrong-parameter errors from 47 to 22. However, B produces 101 malformed or no-call outputs versus 45 for A. This means a supervisor using only exact-call accuracy could miss a reliability regression in output formatting or call emission.
+The aggregate gain is driven partly by tool selection. Across all final-stage scored examples, A produces 102 wrong-API errors and B produces 12. B also reduces correct-API/wrong-parameter errors from 47 to 22. However, B produces 101 malformed or no-call outputs versus 45 for A. Table~\ref{tab:errors} gives the full breakdown. This means a supervisor using only exact-call accuracy could miss a reliability regression in output formatting or call emission.
 
 \begin{table}[t]
 \centering
