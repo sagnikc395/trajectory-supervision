@@ -28,6 +28,7 @@ The Drive folder includes the seed 42 A/B checkpoint bundles, result JSONs, prep
   Self-contained: it rebuilds the API-Bank blocks itself, so it can be run on Colab
   without running `01_data_prep.ipynb` first. Requires a GPU runtime (A100 or better
   for the full run) and an `HF_TOKEN` Colab secret. Set `SMOKE_TEST = True` for a
-  fast dry run on a free T4 before the real one.
+  fast dry run on a free T4 before the real one. Section 7 bundles the run's JSON
+  results into a zip and downloads it; unzip it into `artifacts/` to commit them.
 
 Completed notebook copies and run notes are kept under `runs/`.
